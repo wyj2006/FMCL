@@ -1,7 +1,0 @@
-from .AddToTitleEvent import AddToTitleEvent
-from .AddToTitleMenuEvent import AddToTitleMenuEvent
-from .RemoveFromTitleEvent import RemoveFromTitleEvent
-from .RemoveFromTitleMenuEvent import RemoveFromTitleMenuEvent
-from .SeparateWidgetEvent import SeparateWidgetEvent
-from .WidgetCaughtEvent import WidgetCaughtEvent
-from .WindowActivatedEvent import WindowActivatedEvent

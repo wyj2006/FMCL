@@ -3,45 +3,30 @@
 ![Downloads](https://img.shields.io/github/downloads/wyj2006/FMCL/total)
 ![Stars](https://img.shields.io/github/stars/wyj2006/FMCL)
 ![CodeSize](https://img.shields.io/github/languages/code-size/wyj2006/FMCL)
-![PoweredBy](https://img.shields.io/badge/Powered%20By-YongjianWang-green.svg)
+![MadeBy](https://img.shields.io/badge/Made%20By-YongjianWang-green.svg)
 
 [English](README_en.md) | 中文
 
 ## 介绍
 
-FMCL (Functional Minecraft Launcher) 是一个用Python编写的基于PyQt5的跨平台的MC启动器
+FMCL (Functional Minecraft Launcher) 是一个MC启动器
 
-## 贡献
+## 构建
 
-您可以做一下几件事或者更多:
+目前只支持Windows系统, 需要C编译器支持C23标准
 
-- 添加更多功能
-- 修复Bug
-- 翻译
-- 完善帮助
+1. 准备
 
-### 准备
+    ```shell
+    cd scripts
+    python decompress.py
+    ```
 
-在根目录执行以下命令
+2. 构建
 
-```shell
-pip install -r requirements.txt
-```
-
-以下是非必要的命令
-
-```shell
-mkdir Pack
-cd Scripts
-python Pack.py
-```
-
-## 依赖
-
-详见`Kernel.py`中的`Kernel.getAbout`函数
-
-## 命令行参数
-
-| 参数          | 简介                                    |
-|---------------|----------------------------------------|
-|`--updated`    |将会删除参数后面指示的文件,一般在更新后使用 |
+    ```shell
+    mkdir build
+    cd build
+    cmake ..
+    make
+    ```
