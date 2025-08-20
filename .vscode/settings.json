@@ -1,0 +1,6 @@
+{
+    "cmake.configureArgs": [
+        //"-DBoost_COMPILER=-vc143",
+        "-DBoost_DIR=D:/Program Files/Boost/stage/lib/cmake/Boost-1.88.0"
+    ]
+}

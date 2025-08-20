@@ -9,24 +9,4 @@
 
 ## 介绍
 
-FMCL (Functional Minecraft Launcher) 是一个MC启动器
-
-## 构建
-
-目前只支持Windows系统, 需要C编译器支持C23标准
-
-1. 准备
-
-    ```shell
-    cd scripts
-    python decompress.py
-    ```
-
-2. 构建
-
-    ```shell
-    mkdir build
-    cd build
-    cmake ..
-    make
-    ```
+FMCL (Functional Minecraft Launcher) 是一个Minecraft启动器

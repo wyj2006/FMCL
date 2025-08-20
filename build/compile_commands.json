@@ -1,0 +1,56 @@
+[
+{
+  "directory": "D:/Codes/FMCL/build",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCL.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCL.dir/kernel/filesystem/fcb.cpp.obj -c D:/Codes/FMCL/kernel/filesystem/fcb.cpp",
+  "file": "D:/Codes/FMCL/kernel/filesystem/fcb.cpp",
+  "output": "CMakeFiles/FMCL.dir/kernel/filesystem/fcb.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCL.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCL.dir/kernel/filesystem/fs.cpp.obj -c D:/Codes/FMCL/kernel/filesystem/fs.cpp",
+  "file": "D:/Codes/FMCL/kernel/filesystem/fs.cpp",
+  "output": "CMakeFiles/FMCL.dir/kernel/filesystem/fs.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCL.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCL.dir/kernel/main.cpp.obj -c D:/Codes/FMCL/kernel/main.cpp",
+  "file": "D:/Codes/FMCL/kernel/main.cpp",
+  "output": "CMakeFiles/FMCL.dir/kernel/main.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCL.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCL.dir/lib/io/directory.cpp.obj -c D:/Codes/FMCL/lib/io/directory.cpp",
+  "file": "D:/Codes/FMCL/lib/io/directory.cpp",
+  "output": "CMakeFiles/FMCL.dir/lib/io/directory.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCL.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCL.dir/lib/io/file.cpp.obj -c D:/Codes/FMCL/lib/io/file.cpp",
+  "file": "D:/Codes/FMCL/lib/io/file.cpp",
+  "output": "CMakeFiles/FMCL.dir/lib/io/file.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCL.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCL.dir/lib/io/function.cpp.obj -c D:/Codes/FMCL/lib/io/function.cpp",
+  "file": "D:/Codes/FMCL/lib/io/function.cpp",
+  "output": "CMakeFiles/FMCL.dir/lib/io/function.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build/lib",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCLLib.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCLLib.dir/io/directory.cpp.obj -c D:/Codes/FMCL/lib/io/directory.cpp",
+  "file": "D:/Codes/FMCL/lib/io/directory.cpp",
+  "output": "lib/CMakeFiles/FMCLLib.dir/io/directory.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build/lib",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCLLib.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCLLib.dir/io/file.cpp.obj -c D:/Codes/FMCL/lib/io/file.cpp",
+  "file": "D:/Codes/FMCL/lib/io/file.cpp",
+  "output": "lib/CMakeFiles/FMCLLib.dir/io/file.cpp.obj"
+},
+{
+  "directory": "D:/Codes/FMCL/build/lib",
+  "command": "\"C:/Program Files/LLVM/bin/clang++.exe\" -DBOOST_ATOMIC_NO_LIB -DBOOST_CHRONO_NO_LIB -DBOOST_CONTAINER_NO_LIB -DBOOST_CONTEXT_NO_LIB -DBOOST_DATE_TIME_NO_LIB -DBOOST_FILESYSTEM_NO_LIB -DBOOST_JSON_NO_LIB -DBOOST_LOG_NO_LIB -DBOOST_PROCESS_NO_LIB -DBOOST_SYSTEM_NO_LIB -DBOOST_THREAD_NO_LIB @CMakeFiles/FMCLLib.dir/includes_CXX.rsp -O0 -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -g -Xclang -gcodeview -o CMakeFiles/FMCLLib.dir/io/function.cpp.obj -c D:/Codes/FMCL/lib/io/function.cpp",
+  "file": "D:/Codes/FMCL/lib/io/function.cpp",
+  "output": "lib/CMakeFiles/FMCLLib.dir/io/function.cpp.obj"
+}
+]

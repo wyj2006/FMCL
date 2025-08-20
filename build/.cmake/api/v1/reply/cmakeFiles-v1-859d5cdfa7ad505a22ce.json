@@ -1,0 +1,764 @@
+{
+	"globsDependent" : 
+	[
+		{
+			"expression" : "D:/Codes/FMCL/kernel/*.cpp",
+			"paths" : 
+			[
+				"D:/Codes/FMCL/kernel/filesystem/fcb.cpp",
+				"D:/Codes/FMCL/kernel/filesystem/fs.cpp",
+				"D:/Codes/FMCL/kernel/main.cpp"
+			],
+			"recurse" : true
+		},
+		{
+			"expression" : "D:/Codes/FMCL/lib/*.cpp",
+			"paths" : 
+			[
+				"D:/Codes/FMCL/lib/io/directory.cpp",
+				"D:/Codes/FMCL/lib/io/file.cpp",
+				"D:/Codes/FMCL/lib/io/function.cpp"
+			],
+			"recurse" : true
+		}
+	],
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/CMakeFiles/4.0.3/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/CMakeFiles/4.0.3/CMakeCCompiler.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/CMakeFiles/4.0.3/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/WindowsPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-Clang.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "build/CMakeFiles/4.0.3/CMakeRCCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeRCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/LLD-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/LLD.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-LLD-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-LLD.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Windows-Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCXXLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CMakeCommonLinkerInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/LLD-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/LLD.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Linker/MSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-LLD-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-LLD.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Platform/Linker/Windows-MSVC.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/Boost-1.88.0/BoostConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/Boost-1.88.0/BoostConfig.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/boost_filesystem-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/boost_filesystem-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/libboost_filesystem-variant-mt-gd-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/libboost_filesystem-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/libboost_filesystem-variant-mt-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/libboost_filesystem-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/boost_atomic-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/boost_atomic-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/libboost_atomic-variant-mt-gd-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/libboost_atomic-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/libboost_atomic-variant-mt-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/libboost_atomic-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/libboost_system-variant-mt-gd-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/libboost_system-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/libboost_system-variant-mt-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/libboost_system-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/boost_thread-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/boost_thread-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/libboost_thread-variant-mt-gd-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/libboost_thread-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/libboost_thread-variant-mt-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/libboost_thread-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/boost_chrono-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/boost_chrono-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/libboost_chrono-variant-mt-gd-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/libboost_chrono-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/libboost_chrono-variant-mt-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/libboost_chrono-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "C:/Program Files/CMake/share/cmake-4.0/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_json-1.88.0/boost_json-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_json-1.88.0/boost_json-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_json-1.88.0/libboost_json-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_json-1.88.0/libboost_json-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_container-1.88.0/boost_container-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_container-1.88.0/boost_container-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_container-1.88.0/libboost_container-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_container-1.88.0/libboost_container-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_container-1.88.0/boost_container-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_container-1.88.0/boost_container-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_log-1.88.0/boost_log-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_log-1.88.0/boost_log-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_log-1.88.0/libboost_log-variant-mt-gd-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_log-1.88.0/libboost_log-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_log-1.88.0/libboost_log-variant-mt-x64-shared.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_log-1.88.0/libboost_log-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/boost_atomic-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/boost_atomic-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/boost_chrono-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_chrono-1.88.0/boost_chrono-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/boost_filesystem-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/boost_filesystem-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/boost_thread-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_thread-1.88.0/boost_thread-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_process-1.88.0/boost_process-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_process-1.88.0/boost_process-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_process-1.88.0/libboost_process-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_process-1.88.0/libboost_process-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/boost_atomic-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_atomic-1.88.0/boost_atomic-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_context-1.88.0/boost_context-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_context-1.88.0/boost_context-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_context-1.88.0/libboost_context-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_context-1.88.0/libboost_context-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_date_time-1.88.0/boost_date_time-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_date_time-1.88.0/boost_date_time-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/BoostDetectToolset-1.88.0.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_date_time-1.88.0/libboost_date_time-variant-mt-gd-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_date_time-1.88.0/libboost_date_time-variant-mt-x64-static.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/boost_filesystem-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_filesystem-1.88.0/boost_filesystem-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_system-1.88.0/boost_system-config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config-version.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "D:/Program Files/Boost/stage/lib/cmake/boost_headers-1.88.0/boost_headers-config.cmake"
+		},
+		{
+			"path" : "lib/CMakeLists.txt"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "D:/Codes/FMCL/build",
+		"source" : "D:/Codes/FMCL"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 1
+	}
+}

@@ -1,0 +1,2 @@
+"C:/Program Files/LLVM/bin/llvm-ar.exe" qc FMCLLib.lib CMakeFiles/FMCLLib.dir/io/directory.cpp.obj CMakeFiles/FMCLLib.dir/io/file.cpp.obj CMakeFiles/FMCLLib.dir/io/function.cpp.obj
+"C:/Program Files/LLVM/bin/llvm-ranlib.exe" FMCLLib.lib
