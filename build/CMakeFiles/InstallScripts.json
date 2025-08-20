@@ -1,8 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"D:/Codes/FMCL/build/cmake_install.cmake",
-		"D:/Codes/FMCL/build/lib/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
