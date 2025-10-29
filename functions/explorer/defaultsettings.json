@@ -1,0 +1,17 @@
+{
+    "explorer": {
+        "display_name": "Explorer",
+        "translation_context": "Explorer"
+    },
+    "explorer.detach_on_quit": {
+        "default_value": false,
+        "display_name": "在退出时分离",
+        "translation_context": "Explorer",
+        "description": "如果为True, 在Exploer退出时会分离那些未分离的窗口, 为False会直接删除这些窗口"
+    },
+    "explorer.embed_window": {
+        "default_value": true,
+        "display_name": "嵌入窗口",
+        "translation_context": "Explorer"
+    }
+}

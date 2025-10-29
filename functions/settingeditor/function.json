@@ -1,0 +1,11 @@
+{
+    "display_name": "设置",
+    "translation_context": "SettingEditor",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "SETTING"
+    },
+    "command": {
+        "template": "python"
+    }
+}

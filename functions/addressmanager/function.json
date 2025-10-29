@@ -1,0 +1,11 @@
+{
+    "display_name": "网址管理器",
+    "translation_context": "AddressManager",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "GLOBE"
+    },
+    "command": {
+        "template": "python"
+    }
+}

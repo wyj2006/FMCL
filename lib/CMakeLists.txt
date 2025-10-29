@@ -1,6 +1,0 @@
-set(FMCLLib_INCLUDE_DIRS "lib" PARENT_SCOPE)
-
-file(GLOB_RECURSE LIB_SOURCES CONFIGURE_DEPENDS "*.cpp")
-
-add_library(FMCLLib)
-target_sources(FMCLLib PUBLIC ${LIB_SOURCES})

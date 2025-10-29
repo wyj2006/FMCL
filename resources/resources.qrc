@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/">
+    <file>icon/fmcl.ico</file>
+    <file>image/icon.png</file>
+  </qresource>
+</RCC>

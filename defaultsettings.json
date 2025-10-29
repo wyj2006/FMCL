@@ -1,0 +1,16 @@
+{
+    "system": {
+        "display_name": "系统",
+        "translation_context": "System"
+    },
+    "system.startups": {
+        "default_value": [
+            {
+                "name": "explorer"
+            }
+        ],
+        "display_name": "启动项",
+        "translation_context": "System",
+        "description": "在系统启动时需要运行的功能"
+    }
+}
