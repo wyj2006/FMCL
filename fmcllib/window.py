@@ -56,7 +56,7 @@ class Window(FramelessWindow):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         if watched == self.client:
             match event.type():
-                case QEvent.Type.Close | QEvent.Type.DeferredDelete:
+                case QEvent.Type.Close | QEvent.Type.DeferredDelete | QEvent.Type.Hide:
                     self.deleteLater()
                 case QEvent.Type.ParentChange if watched.parent() != self:
                     self.deleteLater()

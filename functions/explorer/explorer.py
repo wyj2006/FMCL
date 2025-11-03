@@ -1,11 +1,11 @@
-from PyQt6.QtCore import QEvent, QMetaObject, QObject, QPoint, Qt, QTimer, pyqtSlot
+from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QApplication, QStackedWidget, QWidget
 from qfluentwidgets import FluentIcon, RoundMenu, TabItem, TransparentToolButton
 from start import Start
 from taskbar import TaskBar
 
-from fmcllib.mirror import MirrorFilter, MirrorRegisterInfo, MirrorWidget, getall_mirror
+from fmcllib.mirror import MirrorRegisterInfo, WindowMirror, getall_mirror
 from fmcllib.setting import Setting
 from fmcllib.window import Window
 
@@ -33,13 +33,12 @@ class Explorer(QStackedWidget):
 
         self.task_bar = TaskBar()
         self.task_bar.tabCloseRequested.connect(
-            lambda index: self.killMirror(
-                self.captured_widgets[self.task_bar.tabItem(index).routeKey()]
-            )
+            lambda index: self.captured_windows[
+                self.task_bar.tabItem(index).routeKey()
+            ].close()
         )
 
-        self.detached_widgets: dict[str, dict] = {}
-        self.captured_widgets: dict[str, MirrorWidget] = {}
+        self.captured_windows: dict[str, WindowMirror] = {}
         self.titlebar_widgets = []
 
         self.capture_timer = QTimer(self)
@@ -93,11 +92,11 @@ class Explorer(QStackedWidget):
             self.start_button.setChecked(True)
         for item in self.task_bar.items:
             item.setSelected(False)
-        if (mirror_widget := self.currentWidget()) in self.captured_widgets.values():
-            name = mirror_widget.name
+        if (window_mirror := self.currentWidget()) in self.captured_windows.values():
+            name = window_mirror.name
             item = self.task_bar.tab(name)
             item.setSelected(True)
-            self.updateTitleBarWidgets(mirror_widget.titlebar_widgets)
+            self.updateTitleBarWidgets(window_mirror.titlebar_widgets)
         else:
             self.updateTitleBarWidgets([])
 
@@ -117,78 +116,91 @@ class Explorer(QStackedWidget):
                 index, widget, stretch, getattr(Qt.AlignmentFlag, alignment)
             )
 
+    def addToTasbBar(self, window_mirror: WindowMirror):
+        if window_mirror.name in self.task_bar.itemMap:
+            return
+        item = self.task_bar.addTab(
+            window_mirror.name,
+            window_mirror.windowTitle(),
+            window_mirror.windowIcon(),
+            onClick=lambda wm=window_mirror: (
+                (
+                    self.addWidget(wm),
+                    self.setCurrentWidget(wm),
+                )
+                if self.currentWidget() != wm
+                else self.removeWidget(wm)
+            ),
+        )
+        item.setToolTip(window_mirror.windowTitle())
+        item.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        item.customContextMenuRequested.connect(self.showItemRightMenu)
+
+    def removeFromTaskBar(self, window_mirror: WindowMirror):
+        self.task_bar.removeTabByKey(window_mirror.name)
+        self.removeWidget(window_mirror)
+
     def capture(self):
         if Setting().get("explorer.embed_window").unwrap_or(True) == False:
             return
-        registered: dict[str, MirrorRegisterInfo] = getall_mirror()
+        registered = getall_mirror()
         for name, val in registered.items():
-            if (
-                val["kind"] != "window"
-                or name in self.captured_widgets
-                or name in self.detached_widgets
-            ):
+            if val["kind"] != "window" or name in self.captured_windows:
                 continue
-            mirror_widget = self.captured_widgets[name] = MirrorWidget(name)
-            item = self.task_bar.addTab(
-                mirror_widget.name,
-                mirror_widget.windowTitle(),
-                mirror_widget.windowIcon(),
-                onClick=lambda: (
-                    (
-                        self.addWidget(mirror_widget),
-                        self.setCurrentWidget(mirror_widget),
-                    )
-                    if self.currentWidget() != mirror_widget
-                    else self.removeWidget(mirror_widget)
-                ),
-            )
-            item.setToolTip(mirror_widget.windowTitle())
-            item.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-            item.customContextMenuRequested.connect(self.showItemRightMenu)
+            window_mirror = self.captured_windows[name] = WindowMirror(name)
+            self.addToTasbBar(window_mirror)
 
-            mirror_widget.titlebarWidgetsChanged.connect(
-                lambda: (
-                    self.updateTitleBarWidgets(mirror_widget.titlebar_widgets)
-                    if mirror_widget == self.currentWidget()
+            window_mirror.titlebarWidgetsChanged.connect(
+                lambda wm=window_mirror: (
+                    self.updateTitleBarWidgets(wm.titlebar_widgets)
+                    if wm == self.currentWidget()
                     else None
                 )
             )
-            self.addWidget(mirror_widget)
-            self.setCurrentWidget(mirror_widget)
-            mirror_widget.installEventFilter(self)
+            self.addWidget(window_mirror)
+            self.setCurrentWidget(window_mirror)
+            window_mirror.installEventFilter(self)
 
     def eventFilter(self, watched: QObject, event: QEvent):
-        if isinstance(watched, MirrorWidget) and watched.name in self.captured_widgets:
+        if isinstance(watched, WindowMirror):
             match event.type():
+                case QEvent.Type.Close:
+                    self.removeFromTaskBar(watched)
+                case QEvent.Type.Show:
+                    self.addToTasbBar(watched)
                 case QEvent.Type.DeferredDelete:
                     watched.removeEventFilter(self)
-                    self.captured_widgets.pop(watched.name)
+                    self.captured_windows.pop(watched.name)
                     self.task_bar.removeTabByKey(watched.name)
                     self.removeWidget(watched)
                 case QEvent.Type.WindowTitleChange:
                     item = self.task_bar.tab(watched.name)
-                    title = watched.windowTitle()
-                    item.setText(title)
-                    item.setToolTip(title)
+                    if item != None:
+                        title = watched.windowTitle()
+                        item.setText(title)
+                        item.setToolTip(title)
                 case QEvent.Type.WindowIconChange:
-                    self.task_bar.tab(watched.name).setIcon(watched.windowIcon())
+                    if (window_mirror := self.task_bar.tab(watched.name)) != None:
+                        window_mirror.setIcon(watched.windowIcon())
         return super().eventFilter(watched, event)
-
-    def killMirror(self, mirror_widget: MirrorWidget):
-        mirror_widget.kill()
 
     def showItemRightMenu(self):
         menu = RoundMenu(parent=self)
 
         item: TabItem = self.sender()
-        mirror_widget: MirrorWidget = self.captured_widgets[item.routeKey()]
+        window_mirror: WindowMirror = self.captured_windows[item.routeKey()]
 
         detach_action = QAction(self.tr("分离"), icon=FluentIcon.LINK.icon())
-        detach_action.triggered.connect(lambda: self.detach(mirror_widget))
+        detach_action.triggered.connect(
+            lambda: (
+                window_mirror.detach(),
+                self.removeFromTaskBar(window_mirror),
+            )
+        )
         menu.addAction(detach_action)
 
         close_action = QAction(self.tr("关闭"), icon=FluentIcon.CLOSE.icon())
-        close_action.triggered.connect(lambda: self.killMirror(mirror_widget))
+        close_action.triggered.connect(window_mirror.close)
         menu.addAction(close_action)
 
         menu.exec(
@@ -197,37 +209,10 @@ class Explorer(QStackedWidget):
             )
         )
 
-    def embed(self, name: str):
-        info = self.detached_widgets.pop(name)
-        info["socket"].write(
-            f"titlebar contextmenu action remove {info['action_mirror_filter'].name}\0".encode()
-        )
-        info["socket"].close()  # 关闭之前的连接
-        info["action"].deleteLater()
-
-    def detach(self, mirror_widget: MirrorWidget):
-        mirror_widget_name = mirror_widget.name
-        embed_action = QAction(self.tr("嵌入"), icon=FluentIcon.MINIMIZE.icon())
-        embed_mirror_filter = MirrorFilter(embed_action, "action")
-        embed_action.installEventFilter(embed_mirror_filter)
-        embed_action.triggered.connect(lambda: self.embed(mirror_widget_name))
-        mirror_widget.socket.write(
-            f"titlebar contextmenu action add {embed_mirror_filter.name}\0".encode()
-        )
-        self.detached_widgets[mirror_widget.name] = {
-            "action": embed_action,
-            "action_mirror_filter": embed_mirror_filter,
-            "socket": mirror_widget.socket,
-        }
-        mirror_widget.detach()
-
     def on_aboutToQuit(self):
         if Setting().get("explorer.detach_on_quit").unwrap_or(True):
-            for i in tuple(self.captured_widgets.values()):
-                i.detach()
+            for window_mirror in tuple(self.captured_windows.values()):
+                window_mirror.detach()
         else:
-            for mirror_widget in tuple(self.captured_widgets.values()):
-                self.killMirror(mirror_widget)
-        for i in tuple(self.detached_widgets.keys()):
-            # 借用这个函数移除actions
-            self.embed(i)
+            for window_mirror in tuple(self.captured_windows.values()):
+                window_mirror.close()

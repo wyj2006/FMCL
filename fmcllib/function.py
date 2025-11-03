@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import os
@@ -75,7 +76,9 @@ class Function:
         command = {"cwd": os.path.abspath(self.native_paths[0])}
         command |= self.function_info["command"]
 
-        self.socket.sendall(f"run {json.dumps(command)}\0".encode())
+        self.socket.sendall(
+            f"run {base64.b64encode(json.dumps(command).encode()).decode()}\0".encode()
+        )
         result = json.loads(self.socket.recv(1024 * 1024))
 
         if "error_msg" in result:

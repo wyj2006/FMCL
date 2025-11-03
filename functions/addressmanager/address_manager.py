@@ -21,7 +21,7 @@ class AddressManager(QWidget, Ui_AddressManager):
         self.refresh_timer.start(1000)
 
     def refresh(self):
-        registered: dict[str, AddressRegisterInfo] = getall_address()
+        registered = getall_address()
         self.viewer.setRowCount(len(registered))
         for i, (name, value) in enumerate(registered.items()):
             self.viewer.setItem(i, 0, QTableWidgetItem(name))

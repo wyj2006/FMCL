@@ -1,4 +1,5 @@
-use super::service_template;
+use super::{error_log_and_write, service_template};
+use base64::prelude::*;
 use log::{debug, error, info, warn};
 use std::thread::Builder;
 
@@ -21,13 +22,19 @@ pub fn logging_service() {
         "logging".to_string(),
         String::from("127.0.0.1:0"),
         |stream| format!("{}(logging)", stream.peer_addr().unwrap()),
-        |_stream, _reader, _writer, buf, args| {
+        |_stream, _reader, writer, _buf, args| {
             if args.len() >= 2 {
-                let prefix_length = args[0].len() + args[1].len() + 1;
+                let message = match BASE64_STANDARD.decode(args[2].clone()) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        error_log_and_write(writer, e.to_string());
+                        return;
+                    }
+                };
                 logging(
                     args[0].clone(),
                     args[1].clone(),
-                    buf[prefix_length + 1..].to_string(),
+                    String::from_utf8_lossy(&message).to_string(),
                 );
             }
         },

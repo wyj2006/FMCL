@@ -14,6 +14,7 @@ client.connect(address)
 
 
 class AddressRegisterInfo(TypedDict):
+    name: str
     ip: str
     port: str
 
@@ -35,6 +36,6 @@ def get_address(name: str) -> Result[tuple[str, int], str]:
     return Ok((result["ip"], int(result["port"])))
 
 
-def getall_address() -> list[AddressRegisterInfo]:
+def getall_address() -> dict[str, AddressRegisterInfo]:
     client.sendall(f"getall\0".encode())
     return json.loads(client.recv(1024 * 1024))

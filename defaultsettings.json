@@ -12,5 +12,27 @@
         "display_name": "启动项",
         "translation_context": "System",
         "description": "在系统启动时需要运行的功能"
+    },
+    "account": {
+        "display_name": "账号",
+        "translation_context": "Account"
+    },
+    "account.profiles": {
+        "default_value": [],
+        "display_name": "档案",
+        "translation_context": "Account",
+        "setting_card": "edit_in_account_manager_for_profile"
+    },
+    "account.current": {
+        "default_value": -1,
+        "display_name": "当前账号",
+        "translation_context": "Account",
+        "setting_card": "edit_in_account_manager_for_current"
+    },
+    "account.authlib_injector_servers": {
+        "default_value": [],
+        "display_name": "外置登录服务器",
+        "translation_context": "Account",
+        "setting_card": "edit_in_account_manager_for_servers"
     }
 }

@@ -1,4 +1,6 @@
+import base64
 import json
+import logging
 from typing import Literal, TypedDict
 
 from PyQt6.QtCore import QBuffer, QEvent, QIODevice, QObject, pyqtSignal
@@ -6,15 +8,13 @@ from PyQt6.QtGui import QIcon, QImage, QPixmap
 from PyQt6.QtNetwork import QTcpServer, QTcpSocket
 from result import Err, Ok, Result
 
-from fmcllib.address import get_address
-from fmcllib.safe_socket import SafeSocket
+from fmcllib.address import getall_address, register_address, unregister_address
 
-address: int = get_address("mirror").unwrap()
-client = SafeSocket()
-client.connect(address)
+NAME_PREFIX = "@mirror"
 
 
 class MirrorRegisterInfo(TypedDict):
+    name: str
     kind: Literal["window", "action", "widget"]
     port: str
 
@@ -50,6 +50,13 @@ class TcpServer(QTcpServer):
             conn.write(data)
             conn.flush()
 
+    def readAll(self):
+        if len(self.connections) > 1:
+            logging.warning(
+                f"{self.serverAddress()}有多个连接, 只读第一个({self.connections[0].localAddress()})"
+            )
+        return self.connections[0].readAll()
+
 
 def icon_to_data(icon: QIcon) -> bytes:
     icon_image = icon.pixmap(16).toImage()
@@ -76,6 +83,10 @@ def event_to_command(event: QEvent, source: QObject) -> str:
             return "show"
         case QEvent.Type.Hide:
             return "hide"
+        case QEvent.Type.Close:
+            return "close"
+        case QEvent.Type.DeferredDelete:
+            return "deletelater"
         case _:
             return "nop"
 
@@ -121,26 +132,45 @@ def handle_command(target: QObject, command: str) -> tuple[str]:
             target.hide()
         case ("activate_window",):
             target.activateWindow()
+        case ("deletelater",):
+            target.deleteLater()
     return args
 
 
+def gen_address_name(reginfo: MirrorRegisterInfo):
+    return f"{NAME_PREFIX}{base64.b64encode(json.dumps(reginfo).encode()).decode()}"
+
+
 def register_mirror(name: str, kind: str, port: int):
-    client.sendall(f"register {name} {kind} {port}\0".encode())
+    reginfo: MirrorRegisterInfo = {"name": name, "kind": kind, "port": str(port)}
+    register_address(
+        gen_address_name(reginfo),
+        "127.0.0.1",
+        port,
+    )
 
 
 def unregister_mirror(name: str):
-    client.sendall(f"unregister {name}\0".encode())
+    for i in getall_mirror().values():
+        if i["name"] == name:
+            unregister_address(gen_address_name(i))
+            break
 
 
 def get_mirror(name: str) -> Result[MirrorRegisterInfo, str]:
-    client.sendall(f"get {name}\0".encode())
-    result = json.loads(client.recv(1024 * 1024))
-    if "error_msg" in result:
-        return Err(result["error_msg"])
-    return Ok(result)
+    for i in getall_mirror().values():
+        if i["name"] == name:
+            return Ok(i)
+    return Err(f"Cannot found {name}")
 
 
-def getall_mirror() -> list[MirrorRegisterInfo]:
-    client.sendall(f"getall\0".encode())
-    result = json.loads(client.recv(1024 * 1024))
+def getall_mirror() -> dict[str, MirrorRegisterInfo]:
+    result = {}
+    for i in getall_address().values():
+        if not i["name"].startswith(NAME_PREFIX):
+            continue
+        reginfo: MirrorRegisterInfo = json.loads(
+            base64.b64decode(i["name"][len(NAME_PREFIX) :])
+        )
+        result[reginfo["name"]] = reginfo
     return result

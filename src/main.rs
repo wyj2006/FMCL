@@ -10,13 +10,11 @@ use chrono::Local;
 use log::{Level, error, info};
 use serde_json::json;
 use service::address::remove_address_disconnected;
-use service::filesystem::{get_fcb, fcb_root};
+use service::filesystem::{fcb_root, get_fcb};
 use service::function::{remove_stopped_functions, run_function, running_functions};
-use service::mirror::remove_mirror_disconnected;
 use service::setting::save_settings;
 use service::{
-    address_service, filesystem_service, function_service, logging_service, mirror_service,
-    setting_service,
+    address_service, filesystem_service, function_service, logging_service, setting_service,
 };
 use std::collections::hash_map::DefaultHasher;
 use std::fs::OpenOptions;
@@ -112,11 +110,6 @@ fn main() {
         .unwrap();
 
     thread::Builder::new()
-        .name("mirror".to_string())
-        .spawn(mirror_service)
-        .unwrap();
-
-    thread::Builder::new()
         .name("logging".to_string())
         .spawn(logging_service)
         .unwrap();
@@ -132,7 +125,10 @@ fn main() {
         .unwrap();
 
     {
-        match get_fcb(&mut fcb_root.lock().unwrap(), &("/functions/init".to_string())) {
+        match get_fcb(
+            &mut fcb_root.lock().unwrap(),
+            &("/functions/init".to_string()),
+        ) {
             Ok(t) => {
                 if let Err(e) = run_function(
                     json!({
@@ -154,7 +150,6 @@ fn main() {
     loop {
         thread::sleep(Duration::from_secs(1));
         //定期检测或者在断开与服务的连接时检查
-        remove_mirror_disconnected();
         remove_address_disconnected();
         remove_stopped_functions();
         let mut could_quit = false;

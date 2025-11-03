@@ -11,11 +11,13 @@ from PyQt6.QtCore import (
 )
 from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import QApplication, QLabel, QWidget
-from qfluentwidgets import FluentIcon, TransparentToolButton
+from qfluentwidgets import FluentIcon, PushButton, TransparentToolButton
 from settingcard import SettingCard, dispatch_card
+from settingcard.mirror_card import MirrorCard
 from ui_setting_editor import Ui_SettingEditor
 
-from fmcllib.mirror import MirrorFilter
+from fmcllib.function import Function
+from fmcllib.mirror import SettingCardSource, WindowSource
 from fmcllib.setting import SETTING_DEFAULT_PATH, Setting
 from fmcllib.window import Window
 
@@ -123,6 +125,8 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         self.setupUi(self)
         self.setWindowIcon(FluentIcon.SETTING.icon())
         self.splitter.setSizes([100, 300])
+        # 因为可能存在MirrorCard, 为了减少麻烦, 关闭后就删除
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
 
         self.path = path
         self.setting: Setting = Setting(path)
@@ -148,6 +152,42 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         self.editinjson_button = TransparentToolButton(icon=FluentIcon.CODE.icon())
         self.editinjson_button.setToolTip(self.tr("在文件中编辑"))
         self.editinjson_button.clicked.connect(self.openJsonEditor)
+
+        self.editinmanager_for_profile = PushButton(self.tr("在账号管理器中编辑"))
+        self.editinmanager_for_profile.setFixedHeight(32)
+        self.editinmanager_for_profile.installEventFilter(
+            SettingCardSource(
+                self.editinmanager_for_profile,
+                name="edit_in_account_manager_for_profile",
+            )
+        )
+        self.editinmanager_for_profile.clicked.connect(
+            lambda: Function("accountmanager").run()
+        )
+
+        self.editinmanager_for_current = PushButton(self.tr("在账号管理器中编辑"))
+        self.editinmanager_for_current.setFixedHeight(32)
+        self.editinmanager_for_current.installEventFilter(
+            SettingCardSource(
+                self.editinmanager_for_current,
+                name="edit_in_account_manager_for_current",
+            )
+        )
+        self.editinmanager_for_current.clicked.connect(
+            lambda: Function("accountmanager").run()
+        )
+
+        self.editinmanager_for_servers = PushButton(self.tr("在账号管理器中编辑"))
+        self.editinmanager_for_servers.setFixedHeight(32)
+        self.editinmanager_for_servers.installEventFilter(
+            SettingCardSource(
+                self.editinmanager_for_servers,
+                name="edit_in_account_manager_for_servers",
+            )
+        )
+        self.editinmanager_for_servers.clicked.connect(
+            lambda: Function("accountmanager").run()
+        )
 
         self.titlebar_widgets = [
             {
@@ -178,9 +218,8 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.json_editor.installEventFilter(
-            MirrorFilter(
+            WindowSource(
                 self.json_editor,
-                "window",
                 lambda w: Window(w).show(),
             )
         )
@@ -200,6 +239,10 @@ class SettingEditor(QWidget, Ui_SettingEditor):
                     return super().event(e)
                 self.editinjson_button.setFixedHeight(window.titleBar.height())
                 self.editinjson_button.setFixedWidth(window.titleBar.closeBtn.width())
+            case QEvent.Type.Close:
+                for i in self.cards.values():
+                    if isinstance(i, MirrorCard):
+                        i.close()
         return super().event(e)
 
     def naviagate(self, key: str):

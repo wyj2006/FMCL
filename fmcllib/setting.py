@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 from typing import Any, TypedDict, Union
@@ -86,7 +87,7 @@ class Setting:
                 [
                     f'add_or_update{"_default" if is_default else ""}',
                     f'"{Setting.key_join(self.parent_key, key)}"',
-                    f'"{repr(json.dumps(value))[1:-1].replace('"','\\"')}"\0',
+                    f"{base64.b64encode(json.dumps(value).encode()).decode()}\0",
                 ]
             ).encode()
         )
@@ -96,14 +97,14 @@ class Setting:
             return Err(result["error_msg"])
         return Ok(None)
 
-    def add_or_update_attr(self, key: str, attr_name: str, attr) -> Result[None, str]:
+    def add_or_update_attr(self, key: str, attr_name: str, value) -> Result[None, str]:
         self.socket.sendall(
             " ".join(
                 [
                     f"add_or_update_attr",
                     f'"{Setting.key_join(self.parent_key, key)}"',
                     attr_name,
-                    f'"{repr(json.dumps(attr))[1:-1].replace('"','\\"')}"\0',
+                    f"{base64.b64encode(json.dumps(value).encode()).decode()}\0",
                 ]
             ).encode()
         )

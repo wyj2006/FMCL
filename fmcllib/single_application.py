@@ -25,6 +25,7 @@ class SingleApplication(QApplication):
             self.otherAppConfirmed.emit()
             return
         self.port = int.from_bytes(hashlib.md5(port_name.encode()).digest()[:2])
+        logging.info(f"{port_name}监听端口{self.port}")
         register_address(port_name, "127.0.0.1", self.port)
 
         self.socket = socket.socket()

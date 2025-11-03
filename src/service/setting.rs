@@ -2,6 +2,7 @@ use super::filesystem::{fcb_root, get_or_create_fcb};
 use super::{error_log_and_write, service_template, write_ok};
 use crate::fcb::FCB;
 use crate::setting_item::SettingItem;
+use base64::prelude::*;
 use lazy_static::lazy_static;
 use log::{error, warn};
 use serde_json::{self, Map, Value, json};
@@ -12,7 +13,7 @@ use std::io::Write;
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref setting_root: Mutex<SettingItem> = Mutex::new(SettingItem {
+    pub static ref setting_root: Mutex<SettingItem> = Mutex::new(SettingItem {
         name: "root".to_string(),
         ..Default::default()
     });
@@ -245,7 +246,14 @@ pub fn setting_service() {
                 }
             } else if args.len() >= 3 && args[0] == "add_or_update_default" {
                 let key = &args[1];
-                let value: Value = match serde_json::from_str(&args[2]) {
+                let json_str = match BASE64_STANDARD.decode(args[2].clone()) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        error_log_and_write(writer, e.to_string());
+                        return;
+                    }
+                };
+                let value: Value = match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
                     Ok(t) => t,
                     Err(e) => {
                         error_log_and_write(writer, e.to_string());
@@ -259,7 +267,14 @@ pub fn setting_service() {
                 }
             } else if args.len() >= 3 && args[0] == "add_or_update" {
                 let key = &args[1];
-                let value: Value = match serde_json::from_str(&args[2]) {
+                let json_str = match BASE64_STANDARD.decode(args[2].clone()) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        error_log_and_write(writer, e.to_string());
+                        return;
+                    }
+                };
+                let value: Value = match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
                     Ok(t) => t,
                     Err(e) => {
                         error_log_and_write(writer, e.to_string());
@@ -274,7 +289,14 @@ pub fn setting_service() {
             } else if args.len() >= 4 && args[0] == "add_or_update_attr" {
                 let key = &args[1];
                 let attr_name = &args[2];
-                let value: Value = match serde_json::from_str(&args[3]) {
+                let json_str = match BASE64_STANDARD.decode(args[3].clone()) {
+                    Ok(t) => t,
+                    Err(e) => {
+                        error_log_and_write(writer, e.to_string());
+                        return;
+                    }
+                };
+                let value: Value = match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
                     Ok(t) => t,
                     Err(e) => {
                         error_log_and_write(writer, e.to_string());

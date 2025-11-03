@@ -2,6 +2,7 @@ use super::{error_log_and_write, service_template, write_ok};
 use crate::common::WORK_DIR;
 use crate::fcb::FCB;
 use lazy_static::lazy_static;
+use log::warn;
 use serde_json::{self, json};
 use std::fs;
 use std::io::Write;
@@ -112,6 +113,25 @@ pub fn mount_native(parent: &mut FCB, path: &String, native_path: &String) -> Re
     }
 }
 
+pub fn makedirs(parent: &mut FCB, path: &String) -> Result<(), String> {
+    match get_or_create_fcb(parent, path) {
+        Ok(t) => {
+            if t.native_paths.len() > 1 {
+                warn!(
+                    "More than one native path. Choose the first one: {}",
+                    t.native_paths[0]
+                );
+            }
+            let native_path = &t.native_paths[0];
+            if let Err(e) = fs::create_dir_all(native_path) {
+                return Err(e.to_string());
+            }
+        }
+        Err(e) => return Err(e),
+    }
+    Ok(())
+}
+
 pub fn filesystem_service() {
     service_template(
         "filesystem".to_string(),
@@ -163,6 +183,15 @@ pub fn filesystem_service() {
                 let path = &args[1];
                 let native_path = &args[2];
                 match mount_native(parent, path, native_path) {
+                    Ok(_) => {
+                        write_ok(writer);
+                    }
+                    Err(e) => {
+                        error_log_and_write(writer, e);
+                    }
+                }
+            } else if args.len() >= 2 && args[0] == "makedirs" {
+                match makedirs(parent, &args[1]) {
                     Ok(_) => {
                         write_ok(writer);
                     }

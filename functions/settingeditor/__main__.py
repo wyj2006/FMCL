@@ -1,12 +1,15 @@
 import sys
 
+from PyQt6.QtCore import QCoreApplication
 from setting_editor import SettingEditor
 
 import resources as _
-from fmcllib.mirror import MirrorFilter
+from fmcllib.mirror import WindowSource
 from fmcllib.setting import SETTING_DEFAULT_PATH
 from fmcllib.single_application import SingleApplication
 from fmcllib.window import Window
+
+tr = QCoreApplication.translate
 
 window = None
 setting_editor = None
@@ -18,25 +21,27 @@ if len(sys.argv) > 1:
 
 def handle():
     global window, setting_editor
-    while setting_editor == None:
-        pass
-    if setting_editor.isVisible():
-        return
-    if isinstance(setting_editor.window(), Window):
-        window = setting_editor.window()
+    try:
+        if setting_editor.isVisible():
+            return
+        setting_editor.show()
+        if isinstance(setting_editor.window(), Window):
+            window = setting_editor.window()
+            window.show()
+            return
+        window = Window(setting_editor)
         window.show()
-        return
-    window = Window(setting_editor)
-    window.show()
+    except RuntimeError:
+        main()
 
 
 def main():
     global window, setting_editor
+
     setting_editor = SettingEditor(setting_path)
     setting_editor.installEventFilter(
-        MirrorFilter(
+        WindowSource(
             setting_editor,
-            "window",
             lambda w: Window(w).show(),
         )
     )

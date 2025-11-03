@@ -4,15 +4,14 @@ from file_manager import FileManager
 from PyQt6.QtWidgets import QApplication
 
 import resources as _
-from fmcllib.mirror import MirrorFilter
+from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
 app = QApplication(sys.argv)
 file_manager = FileManager()
 file_manager.installEventFilter(
-    MirrorFilter(
+    WindowSource(
         file_manager,
-        "window",
         on_detach=lambda w: Window(w).show(),
     )
 )

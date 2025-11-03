@@ -1,0 +1,11 @@
+{
+    "display_name": "账号管理",
+    "translation_context": "AccountManager",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "PEOPLE"
+    },
+    "command": {
+        "template": "python"
+    }
+}

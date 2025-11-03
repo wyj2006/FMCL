@@ -2,16 +2,15 @@ import sys
 
 from PyQt6.QtWidgets import QApplication
 
-from fmcllib.mirror import MirrorFilter
+from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 from functions.addressmanager.address_manager import AddressManager
 
 app = QApplication(sys.argv)
 address_manager = AddressManager()
 address_manager.installEventFilter(
-    MirrorFilter(
+    WindowSource(
         address_manager,
-        "window",
         lambda w: Window(w).show(),
     )
 )

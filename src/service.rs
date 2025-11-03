@@ -2,19 +2,17 @@ pub mod address;
 pub mod filesystem;
 pub mod function;
 pub mod logging;
-pub mod mirror;
 pub mod setting;
 
 pub use address::{address_service, register_address};
 pub use filesystem::filesystem_service;
 pub use function::function_service;
 pub use logging::logging_service;
-pub use mirror::mirror_service;
 pub use setting::setting_service;
 
 use crate::common::parse_command;
 use lazy_static::lazy_static;
-use log::{debug, error, info};
+use log::{error, info};
 use serde_json::json;
 use std::io::Write;
 use std::io::{self, BufRead, BufReader, BufWriter};
@@ -113,7 +111,7 @@ pub fn service_template<T, E, P>(
                     let buf = String::from(&buf[..buf.len() - 1]); //去除最后的\0
 
                     let args = parse_command(&buf);
-                    debug!("Read: {buf:?} {args:?}");
+                    info!("Read: {buf:?} {args:?}");
 
                     handler(&stream, &mut reader, &mut writer, buf, args);
                 }

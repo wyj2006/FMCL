@@ -1,3 +1,4 @@
+import base64
 import logging
 import socket
 import sys
@@ -20,7 +21,14 @@ class RemoteHandler(logging.Handler):
 
     def emit(self, record):
         self.socket.sendall(
-            f'{record.levelname.lower()} "{record.processName}|{record.threadName}" {record.msg}\0'.encode()
+            " ".join(
+                [
+                    record.levelname.lower(),
+                    f'"{record.processName}({record.process})|{record.threadName}"',
+                    base64.b64encode((record.msg % record.args).encode()).decode()
+                    + "\0",
+                ]
+            ).encode()
         )
 
 

@@ -2,5 +2,26 @@
   <qresource prefix="/">
     <file>icon/fmcl.ico</file>
     <file>image/icon.png</file>
+    <file>image/fmcl.png</file>
+    
+    <file>image/skin/slim/alex.png</file>
+    <file>image/skin/slim/ari.png</file>
+    <file>image/skin/slim/efe.png</file>
+    <file>image/skin/slim/kai.png</file>
+    <file>image/skin/slim/makena.png</file>
+    <file>image/skin/slim/noor.png</file>
+    <file>image/skin/slim/steve.png</file>
+    <file>image/skin/slim/sunny.png</file>
+    <file>image/skin/slim/zuri.png</file>
+
+    <file>image/skin/wide/alex.png</file>
+    <file>image/skin/wide/ari.png</file>
+    <file>image/skin/wide/efe.png</file>
+    <file>image/skin/wide/kai.png</file>
+    <file>image/skin/wide/makena.png</file>
+    <file>image/skin/wide/noor.png</file>
+    <file>image/skin/wide/steve.png</file>
+    <file>image/skin/wide/sunny.png</file>
+    <file>image/skin/wide/zuri.png</file>
   </qresource>
 </RCC>

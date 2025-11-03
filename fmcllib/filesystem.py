@@ -1,13 +1,11 @@
 import json
 import os
-from typing import Any, Callable, TypedDict, TypeVar
+from typing import Callable, TypedDict
 
 from result import Err, Ok, Result
 
 from fmcllib.address import get_address
 from fmcllib.safe_socket import SafeSocket
-
-_T = TypeVar("T")
 
 current_dir = "/"
 address = get_address("filesystem").unwrap()
@@ -52,7 +50,16 @@ def mount_native(path: str, native_path: str) -> Result[None, str]:
     return Ok(None)
 
 
-def readall(path: str, handler: Callable[[list[str]], _T] = None) -> Result[_T, str]:
+def makedirs(path: str) -> Result[None, str]:
+    client.sendall(f"makedirs {path}\0".encode())
+    result = json.loads(client.recv(1024 * 1024))
+
+    if "error_msg" in result:
+        return Err(result["error_msg"])
+    return Ok(None)
+
+
+def readall[T](path: str, handler: Callable[[list[str]], T] = None) -> Result[T, str]:
     """读取path中的所有内容, 并通过handler处理这些内容"""
     match fileinfo(path):
         case Ok(info):

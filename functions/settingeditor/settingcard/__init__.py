@@ -1,3 +1,5 @@
+import logging
+import traceback
 from typing import Any, Callable, Optional
 
 from .setting_card import SettingCard
@@ -13,7 +15,22 @@ def dispatch_card(
     from .default_card import DefaultCard
     from .dict_card import DictCard
     from .list_card import ListCard
+    from .mirror_card import MirrorCard
     from .string_card import StringCard
+
+    setting_card_name = attr_getter("setting_card", None)
+    if setting_card_name != None:
+        try:
+            return MirrorCard(
+                getter=getter,
+                attr_getter=attr_getter,
+                setter=setter,
+                attr_setter=attr_setter,
+            )
+        except:  # source不存在或者其它问题
+            logging.error(
+                f"无法使用自定义的setting_card: {setting_card_name}: {traceback.format_exc()}"
+            )
 
     value = getter()
     card_cls = DefaultCard

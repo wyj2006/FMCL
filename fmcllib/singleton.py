@@ -1,12 +1,9 @@
 import inspect
 from collections.abc import Hashable
 from functools import wraps
-from typing import TypeVar
-
-_T = TypeVar("T")
 
 
-def singleton(cls: type[_T]) -> type[_T]:
+def singleton[T](cls: type[T]) -> type[T]:
     new = cls.__new__
     init = cls.__init__
     init_sig = inspect.signature(cls.__init__)
@@ -22,6 +19,8 @@ def singleton(cls: type[_T]) -> type[_T]:
                 continue
             if isinstance(val, Hashable):
                 key += (val,)
+            else:
+                key += (str(val),)
         if key not in cls._instances:
             cls._instances[key] = new(cls)
         return cls._instances[key]
