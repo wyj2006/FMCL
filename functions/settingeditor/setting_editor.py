@@ -153,6 +153,10 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         self.editinjson_button.setToolTip(self.tr("在文件中编辑"))
         self.editinjson_button.clicked.connect(self.openJsonEditor)
 
+        # mirror自己进程的source(SettingCardSource),
+        # 会导致即使SettingEditor关闭了, 也还是存在着未关闭的widgets(即这些source),
+        # 而这些widgets无法关闭, 也可能不会显示, 进而导致看似关闭了程序实际却没有的情况发生
+
         self.editinmanager_for_profile = PushButton(self.tr("在账号管理器中编辑"))
         self.editinmanager_for_profile.setWindowTitle(  # 为了用spy++调试
             "edit_in_account_manager_for_profile"

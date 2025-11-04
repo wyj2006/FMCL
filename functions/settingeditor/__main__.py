@@ -28,6 +28,7 @@ def handle():
         if isinstance(setting_editor.window(), Window):
             window = setting_editor.window()
             window.show()
+            window.activateWindow()
             return
         window = Window(setting_editor)
         window.show()

@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QEvent, QObject, QPoint, QSize, Qt
+from PyQt6.QtCore import QEvent, QObject, QSize, Qt
 from PyQt6.QtGui import QCursor
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import RoundMenu
@@ -77,6 +77,7 @@ class Window(FramelessWindow):
                 self.client.resize(self.width(), self.height() - self.titleBar.height())
                 self.client.move(0, self.titleBar.height())
             case QEvent.Type.Close:
+                self.client.close()
                 self.deleteLater()
             case QEvent.Type.DeferredDelete:
                 try:

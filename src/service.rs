@@ -11,7 +11,6 @@ pub use logging::logging_service;
 pub use setting::setting_service;
 
 use crate::common::parse_command;
-use chrono::Local;
 use log::{error, info};
 use serde_json::json;
 use std::io::Write;
@@ -95,9 +94,8 @@ where
 
         Builder::new()
             .name(format!(
-                "{}{}@{}({})",
+                "{}@{}({})",
                 connection_id,
-                Local::now().format("%H%M%S"),
                 stream.peer_addr().unwrap(),
                 name
             ))

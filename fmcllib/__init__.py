@@ -1,13 +1,17 @@
 import base64
 import logging
-import socket
 import sys
 import traceback
 
-from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtCore import (
+    QCoreApplication,
+    QMessageLogContext,
+    QtMsgType,
+    qInstallMessageHandler,
+)
 from PyQt6.QtWidgets import QErrorMessage, QWidget
 
-from .address import get_address, get_service_connection
+from .address import get_service_connection
 
 tr = QCoreApplication.translate
 
@@ -49,6 +53,21 @@ def show_qerrormessage(title: str, message: str, parent: QWidget = None):
     w.showMessage(message.replace("\n", "<br>"))
     logging.error(f"{title}: {message}")
     w.exec()
+
+
+def qt_message_handler(msg_type: QtMsgType, context: QMessageLogContext, msg: str):
+    log = {
+        QtMsgType.QtDebugMsg: logging.debug,
+        QtMsgType.QtWarningMsg: logging.warning,
+        QtMsgType.QtCriticalMsg: logging.critical,
+        QtMsgType.QtFatalMsg: logging.critical,
+        QtMsgType.QtSystemMsg: logging.info,
+        QtMsgType.QtInfoMsg: logging.info,
+    }[msg_type]
+    log(f"File {context.file} at {context.line} in {context.function}: {msg}")
+
+
+qInstallMessageHandler(qt_message_handler)
 
 
 if getattr(sys, "use_kernel_logging", True):

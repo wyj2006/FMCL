@@ -20,6 +20,7 @@ def handle():
     if isinstance(explorer.window(), Window):
         window = explorer.window()
         window.show()
+        window.activateWindow()
         return
     window = Window(explorer)
     window.show()

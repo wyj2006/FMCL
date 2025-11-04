@@ -20,6 +20,7 @@ def handle():
     if isinstance(account_manager.window(), Window):
         window = account_manager.window()
         window.show()
+        window.activateWindow()
         return
     window = Window(account_manager)
     window.show()

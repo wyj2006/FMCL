@@ -16,7 +16,7 @@ class WidgetSource(Source):
     def __init__(
         self,
         parent: QWidget,
-        on_detach: Callable[[QWidget], None] = lambda w: w.show(),
+        on_detach: Callable[[QWidget], None] = None,
         name=None,
     ):
         super().__init__(parent, self.KIND, name)
@@ -67,7 +67,9 @@ class WidgetSource(Source):
         widget: QWidget = self.parent()
         widget.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, False)
         widget.setWindowFlag(Qt.WindowType.FramelessWindowHint, False)
-        self.on_detach(widget)
+        widget.show()  # 先让它正常显示一遍
+        if self.on_detach:
+            self.on_detach(widget)
         self.handleRecvData(follow_commands)  # 处理余下来的指令
 
 
@@ -118,20 +120,15 @@ class WidgetMirror(Mirror, QWidget):
                 self.detach(["close"])
             case QEvent.Type.DeferredDelete:
                 self.detach()
-            case QEvent.Type.Show if (
-                self.socket.state() == QAbstractSocket.SocketState.ConnectedState
-            ):
-                # self.embed()
-                self.socket.write(b"activate_window\0")
-            case QEvent.Type.WindowActivate | QEvent.Type.FocusIn if (
-                self.socket.state() == QAbstractSocket.SocketState.ConnectedState
-            ):
-                self.socket.write(b"activate_window\0")
+            case (
+                QEvent.Type.WindowActivate | QEvent.Type.Show | QEvent.Type.FocusIn
+            ) if (self.socket.state() == QAbstractSocket.SocketState.ConnectedState):
+                pass  # self.socket.write(b"activate_window\0") #加了的话settingeditor会产生奇怪的bug
         return super().event(event)
 
     def _handleRecvData(self, args: tuple[str]):
         match args:
-            case ("change_winid", winid):
+            case ("change_winid", winid) if not self.detached:
                 self.target_winid = int(winid)
                 if self.target_widget != None:
                     self.layout().removeWidget(self.target_widget)
