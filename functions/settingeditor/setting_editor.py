@@ -154,6 +154,9 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         self.editinjson_button.clicked.connect(self.openJsonEditor)
 
         self.editinmanager_for_profile = PushButton(self.tr("在账号管理器中编辑"))
+        self.editinmanager_for_profile.setWindowTitle(  # 为了用spy++调试
+            "edit_in_account_manager_for_profile"
+        )
         self.editinmanager_for_profile.setFixedHeight(32)
         self.editinmanager_for_profile.installEventFilter(
             SettingCardSource(
@@ -166,6 +169,9 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         )
 
         self.editinmanager_for_current = PushButton(self.tr("在账号管理器中编辑"))
+        self.editinmanager_for_current.setWindowTitle(  # 为了用spy++调试
+            "edit_in_account_manager_for_current"
+        )
         self.editinmanager_for_current.setFixedHeight(32)
         self.editinmanager_for_current.installEventFilter(
             SettingCardSource(
@@ -178,6 +184,9 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         )
 
         self.editinmanager_for_servers = PushButton(self.tr("在账号管理器中编辑"))
+        self.editinmanager_for_servers.setWindowTitle(  # 为了用spy++调试
+            "edit_in_account_manager_for_servers"
+        )
         self.editinmanager_for_servers.setFixedHeight(32)
         self.editinmanager_for_servers.installEventFilter(
             SettingCardSource(
@@ -239,7 +248,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
                     return super().event(e)
                 self.editinjson_button.setFixedHeight(window.titleBar.height())
                 self.editinjson_button.setFixedWidth(window.titleBar.closeBtn.width())
-            case QEvent.Type.Close:
+            case QEvent.Type.Close | QEvent.Type.DeferredDelete:
                 for i in self.cards.values():
                     if isinstance(i, MirrorCard):
                         i.close()

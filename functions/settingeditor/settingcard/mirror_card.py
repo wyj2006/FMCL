@@ -2,7 +2,7 @@ import base64
 import json
 
 from PyQt6.QtCore import QEvent
-from PyQt6.QtWidgets import QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QVBoxLayout
 
 from fmcllib.mirror import WidgetMirror
 
@@ -18,6 +18,8 @@ class MirrorCard(SettingCard):
         self.mirror = WidgetMirror(setting_card_name)
         self.mirror._handleRecvData = self._handleRecvData
         layout.addWidget(self.mirror)
+
+        QApplication.instance().aboutToQuit.connect(self.mirror.close)
 
     def _handleRecvData(self, args: tuple[str]):
         match args:

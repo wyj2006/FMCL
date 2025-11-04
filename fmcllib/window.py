@@ -56,7 +56,7 @@ class Window(FramelessWindow):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         if watched == self.client:
             match event.type():
-                case QEvent.Type.Close | QEvent.Type.DeferredDelete | QEvent.Type.Hide:
+                case QEvent.Type.Close | QEvent.Type.DeferredDelete:
                     self.deleteLater()
                 case QEvent.Type.ParentChange if watched.parent() != self:
                     self.deleteLater()
@@ -68,7 +68,7 @@ class Window(FramelessWindow):
                     self.client.installEventFilter(self)
                 case QEvent.Type.Resize:
                     self.resize(event.size() + QSize(0, self.titleBar.height()))
-                    self.client.move(QPoint(0, self.titleBar.height()))
+                    self.client.move(0, self.titleBar.height())
         return super().eventFilter(watched, event)
 
     def event(self, e: QEvent) -> bool:

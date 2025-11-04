@@ -10,13 +10,11 @@ from PyQt6.QtGui import QIcon
 from qfluentwidgets import FluentIcon
 from result import Err, Ok, Result
 
-from fmcllib.address import get_address
+from fmcllib.address import get_service_connection
 from fmcllib.filesystem import fileinfo, listdir, readall
-from fmcllib.safe_socket import SafeSocket
 from fmcllib.singleton import singleton
 
 tr = QCoreApplication.translate
-address = get_address("function").unwrap()
 
 
 class FunctionInfoIcon(TypedDict):
@@ -67,8 +65,7 @@ class Function:
                 self.function_info,
             ),
         )
-        self.socket = SafeSocket()
-        self.socket.connect(address)
+        self.socket = get_service_connection("function")
 
     def run(self, args: list[str] = None) -> Result[None, str]:
         if args == None:

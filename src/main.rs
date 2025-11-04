@@ -67,10 +67,10 @@ fn main() {
                     ))));
 
                     out.finish(format_args!(
-                        "[{}] [{threadname_style}{}{threadname_style:#}/{level_style}{}{level_style:#}]: {}",
+                        "[{}] [{level_style}{}{level_style:#}][{threadname_style}{}{threadname_style:#}]: {}",
                         Local::now().format("%Y-%m-%d %H:%M:%S"),
-                        threadname,
                         record.level(),
+                        threadname,
                         message
                     ))
                 }),
@@ -88,10 +88,10 @@ fn main() {
                 )
                 .format(|out, message, record| {
                     out.finish(format_args!(
-                        "[{}] [{}/{}]: {}",
+                        "[{}] [{}][{}]: {}",
                         Local::now().format("%Y-%m-%d %H:%M:%S"),
-                        thread::current().name().unwrap_or("???").to_string(),
                         record.level(),
+                        thread::current().name().unwrap_or("???").to_string(),
                         message
                     ))
                 }),
@@ -149,8 +149,7 @@ fn main() {
 
     loop {
         thread::sleep(Duration::from_secs(1));
-        //定期检测或者在断开与服务的连接时检查
-        remove_address_disconnected();
+        remove_address_disconnected(); //定期检测或者在断开与服务的连接时检查
         remove_stopped_functions();
         let mut could_quit = false;
         if let Ok(mutex) = running_functions.try_lock() {

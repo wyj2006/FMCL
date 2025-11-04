@@ -1,4 +1,4 @@
-use super::{check_conntection, error_log_and_write, running_services, service_template};
+use super::{check_conntection, error_log_and_write, service_template};
 use lazy_static::lazy_static;
 use serde_json::{self, json};
 use std::collections::HashMap;
@@ -25,21 +25,24 @@ pub fn unregister_address(name: &String) {
 
 ///移除已经失去连接的address
 pub fn remove_address_disconnected() {
-    let mut disconnected = Vec::new();
-    for (name, (_kind, port)) in registered_address.lock().unwrap().iter() {
-        //正在运行的服务肯定没有失去连接
-        if running_services.lock().unwrap().contains(name) {
-            continue;
+    //用try_lock减少对正常服务的影响
+    if let Ok(mut t) = registered_address.try_lock() {
+        let mut disconnected = Vec::new();
+        for (name, (_kind, port)) in t.iter() {
+            //自己肯定没有失去连接
+            if name == "address" {
+                continue;
+            }
+            if !check_conntection(&SocketAddr::V4(SocketAddrV4::new(
+                Ipv4Addr::new(127, 0, 0, 1),
+                port.parse().unwrap(),
+            ))) {
+                disconnected.push(name.clone());
+            }
         }
-        if !check_conntection(&SocketAddr::V4(SocketAddrV4::new(
-            Ipv4Addr::new(127, 0, 0, 1),
-            port.parse().unwrap(),
-        ))) {
-            disconnected.push(name.clone());
+        for name in disconnected {
+            t.remove(&name); //unregister_address(&name);
         }
-    }
-    for name in disconnected {
-        unregister_address(&name);
     }
 }
 
@@ -50,7 +53,6 @@ pub fn address_service() {
             "127.0.0.1:{}",
             env::var("FMCL_ADDRESS_SERVER_PORT").unwrap_or("1024".to_string())
         )),
-        |stream| format!("{}(address)", stream.peer_addr().unwrap()),
         |_stream, _reader, writer, _buf, args| {
             if args.len() >= 4 && args[0] == "register" {
                 register_address(&args[1], &args[2], &args[3]);

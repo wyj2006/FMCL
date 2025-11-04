@@ -88,6 +88,7 @@ class WidgetMirror(Mirror, QWidget):
     def embed(self):
         if not self.detached:
             return
+        self.detached = False
         self.socket.write(b"embed\0")
 
     def detach(self, follow_commands=None):
@@ -99,6 +100,7 @@ class WidgetMirror(Mirror, QWidget):
 
         if self.detached:  # 不重复分离
             return
+        self.detached = True
 
         self.socket.write(
             f"detach {base64.b64encode('\0'.join(follow_commands).encode()).decode()}\0".encode()
@@ -109,8 +111,6 @@ class WidgetMirror(Mirror, QWidget):
         if self.target_window != None:
             self.target_window.deleteLater()
         self.target_widget = self.target_window = None
-
-        self.detached = True
 
     def event(self, event):
         match event.type():
@@ -139,8 +139,6 @@ class WidgetMirror(Mirror, QWidget):
                 self.target_window = QWindow.fromWinId(self.target_winid)
                 self.target_widget = QWidget.createWindowContainer(self.target_window)
                 self.layout().addWidget(self.target_widget)
-
-                self.detached = False
 
                 self.timer = QTimer(self)
                 self.timer.setSingleShot(True)

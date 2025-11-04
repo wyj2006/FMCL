@@ -11,19 +11,15 @@ pub use logging::logging_service;
 pub use setting::setting_service;
 
 use crate::common::parse_command;
-use lazy_static::lazy_static;
+use chrono::Local;
 use log::{error, info};
 use serde_json::json;
 use std::io::Write;
 use std::io::{self, BufRead, BufReader, BufWriter};
 use std::marker::{Send, Sync};
 use std::net::{SocketAddr, TcpListener, TcpStream};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::thread::Builder;
-
-lazy_static! {
-    static ref running_services: Mutex<Vec<String>> = Mutex::new(Vec::new());
-}
 
 pub fn error_log_and_write(writer: &mut BufWriter<&TcpStream>, e: String) {
     error!("{e}");
@@ -46,24 +42,14 @@ pub fn check_conntection(address: &SocketAddr) -> bool {
     }
 }
 
-pub fn service_template<T, E, P>(
-    name: String,
-    address: String,
-    thread_name: T,
-    handler: E,
-    on_disconnect: P,
-) where
-    T: Fn(&TcpStream) -> String,
-    E: Fn(&TcpStream, &mut BufReader<&TcpStream>, &mut BufWriter<&TcpStream>, String, Vec<String>)
+pub fn service_template<T, E>(name: String, address: String, handler: T, on_disconnect: E)
+where
+    T: Fn(&TcpStream, &mut BufReader<&TcpStream>, &mut BufWriter<&TcpStream>, String, Vec<String>)
         + Send
         + Sync
         + 'static,
-    P: Fn(&TcpStream) + Send + Sync + 'static,
+    E: Fn(&TcpStream) + Send + Sync + 'static,
 {
-    {
-        running_services.lock().unwrap().push(name.clone());
-    }
-
     let listener = TcpListener::bind(&address).unwrap();
     let local_addr = listener.local_addr().unwrap();
     register_address(
@@ -86,8 +72,35 @@ pub fn service_template<T, E, P>(
         let handler = Arc::clone(&handler);
         let on_disconnect = Arc::clone(&on_disconnect);
 
+        let connection_id;
+        {
+            let mut reader = io::BufReader::new(&stream);
+            let mut writer = io::BufWriter::new(&stream);
+
+            let mut buf: Vec<u8> = vec![];
+            let bytes_read = match reader.read_until(b'\0', &mut buf) {
+                Ok(t) => t,
+                Err(e) => {
+                    error!("{e}");
+                    continue;
+                }
+            };
+            let buf = String::from_utf8_lossy(&buf);
+            if bytes_read == 0 {
+                continue;
+            }
+            connection_id = String::from(&buf[..buf.len() - 1]); //去除最后的\0
+            write_ok(&mut writer);
+        }
+
         Builder::new()
-            .name(thread_name(&stream))
+            .name(format!(
+                "{}{}@{}({})",
+                connection_id,
+                Local::now().format("%H%M%S"),
+                stream.peer_addr().unwrap(),
+                name
+            ))
             .spawn(move || {
                 let mut reader = io::BufReader::new(&stream);
                 let mut writer = io::BufWriter::new(&stream);
@@ -104,7 +117,7 @@ pub fn service_template<T, E, P>(
                         }
                     };
 
-                    let buf = String::from_utf8(buf).unwrap();
+                    let buf = String::from_utf8_lossy(&buf);
                     if bytes_read == 0 {
                         break;
                     }

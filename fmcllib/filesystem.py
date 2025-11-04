@@ -4,14 +4,10 @@ from typing import Callable, TypedDict
 
 from result import Err, Ok, Result
 
-from fmcllib.address import get_address
-from fmcllib.safe_socket import SafeSocket
+from fmcllib.address import get_service_connection
 
+client = get_service_connection("filesystem")
 current_dir = "/"
-address = get_address("filesystem").unwrap()
-
-client = SafeSocket()
-client.connect(address)
 
 
 class FileInfo(TypedDict):

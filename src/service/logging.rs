@@ -1,7 +1,7 @@
 use super::{error_log_and_write, service_template};
 use base64::prelude::*;
 use log::{debug, error, info, warn};
-use std::thread::Builder;
+use std::thread::{self, Builder};
 
 pub fn logging(level: String, thread_name: String, message: String) {
     Builder::new()
@@ -21,7 +21,6 @@ pub fn logging_service() {
     service_template(
         "logging".to_string(),
         String::from("127.0.0.1:0"),
-        |stream| format!("{}(logging)", stream.peer_addr().unwrap()),
         |_stream, _reader, writer, _buf, args| {
             if args.len() >= 2 {
                 let message = match BASE64_STANDARD.decode(args[2].clone()) {
@@ -33,7 +32,7 @@ pub fn logging_service() {
                 };
                 logging(
                     args[0].clone(),
-                    args[1].clone(),
+                    format!("{}=>{}", thread::current().name().unwrap(), args[1]),
                     String::from_utf8_lossy(&message).to_string(),
                 );
             }

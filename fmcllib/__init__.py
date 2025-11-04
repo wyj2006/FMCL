@@ -7,24 +7,22 @@ import traceback
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtWidgets import QErrorMessage, QWidget
 
-from .address import get_address
+from .address import get_address, get_service_connection
 
 tr = QCoreApplication.translate
-logging_address = get_address("logging").unwrap()
 
 
 class RemoteHandler(logging.Handler):
     def __init__(self, level=0):
         super().__init__(level)
-        self.socket = socket.socket()
-        self.socket.connect(logging_address)
+        self.socket = get_service_connection("logging")
 
     def emit(self, record):
         self.socket.sendall(
             " ".join(
                 [
                     record.levelname.lower(),
-                    f'"{record.processName}({record.process})|{record.threadName}"',
+                    record.threadName,
                     base64.b64encode((record.msg % record.args).encode()).decode()
                     + "\0",
                 ]

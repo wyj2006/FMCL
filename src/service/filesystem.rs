@@ -136,7 +136,6 @@ pub fn filesystem_service() {
     service_template(
         "filesystem".to_string(),
         String::from("127.0.0.1:0"),
-        |stream| format!("{}(file system)", stream.peer_addr().unwrap()),
         |_stream, _reader, writer, _buf, args| {
             let parent = &mut fcb_root.lock().unwrap();
             if args.len() >= 2 && args[0] == "fileinfo" {

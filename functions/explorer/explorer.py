@@ -5,7 +5,7 @@ from qfluentwidgets import FluentIcon, RoundMenu, TabItem, TransparentToolButton
 from start import Start
 from taskbar import TaskBar
 
-from fmcllib.mirror import MirrorRegisterInfo, WindowMirror, getall_mirror
+from fmcllib.mirror import WindowMirror, getall_mirror
 from fmcllib.setting import Setting
 from fmcllib.window import Window
 

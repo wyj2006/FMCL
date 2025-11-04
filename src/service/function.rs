@@ -76,17 +76,22 @@ pub fn run_function(command: &Map<String, Value>) -> Result<(), String> {
 
 ///移除已经结束的功能
 pub fn remove_stopped_functions() {
-    let mut stopped_functions = Vec::new();
-    for (timestamp, child) in running_functions.lock().unwrap().iter_mut() {
-        match child.try_wait() {
-            Ok(Some(_)) | Err(_) => {
-                stopped_functions.push(timestamp.clone());
+    //用try_lock减少对正常服务的影响
+    if let Ok(mut t) = running_functions.try_lock() {
+        let mut stopped_functions = Vec::new();
+
+        for (timestamp, child) in t.iter_mut() {
+            match child.try_wait() {
+                Ok(Some(_)) | Err(_) => {
+                    stopped_functions.push(timestamp.clone());
+                }
+                _ => {}
             }
-            _ => {}
         }
-    }
-    for timestamp in &stopped_functions {
-        running_functions.lock().unwrap().remove(timestamp);
+
+        for timestamp in &stopped_functions {
+            t.remove(timestamp);
+        }
     }
 }
 
@@ -101,7 +106,6 @@ pub fn function_service() {
     service_template(
         "function".to_string(),
         String::from("127.0.0.1:0"),
-        |stream| format!("{}(function)", stream.peer_addr().unwrap()),
         |_stream, _reader, writer, _buf, args| {
             if args.len() >= 2 && args[0] == "run" {
                 let json_str = match BASE64_STANDARD.decode(args[1].clone()) {

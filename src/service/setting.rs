@@ -200,7 +200,6 @@ pub fn setting_service() {
     service_template(
         "setting".to_string(),
         String::from("127.0.0.1:0"),
-        |stream| format!("{}(setting)", stream.peer_addr().unwrap()),
         |_stream, _reader, writer, _buf, args| {
             let parent: &mut SettingItem = &mut setting_root.lock().unwrap();
             if args.len() >= 2 && args[0] == "get" {

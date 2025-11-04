@@ -5,12 +5,11 @@ from typing import Any, TypedDict, Union
 
 from result import Err, Ok, Result
 
-from fmcllib.address import get_address
+from fmcllib.address import get_address, get_service_connection
 from fmcllib.filesystem import readall
 from fmcllib.safe_socket import SafeSocket
 from fmcllib.singleton import singleton
 
-address = get_address("setting").unwrap()
 SETTING_DEFAULT_PATH = "/settings.json"
 
 
@@ -52,8 +51,7 @@ class Setting:
         self.path = path
         # 所有的设置都有一个共同的根, parent_key就是这个设置相对于根的路径
         self.parent_key = path.replace(".", "_")
-        self.socket = SafeSocket()
-        self.socket.connect(address)
+        self.socket = get_service_connection("setting")
 
         readall(
             os.path.join(
