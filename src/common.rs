@@ -72,7 +72,13 @@ pub fn parse_command(command: &String) -> Vec<String> {
                 }
             }
             ParseState::ESCAPE => {
-                arg.push(c);
+                match c {
+                    '"' => arg.push('"'),
+                    _ => {
+                        arg.push('\\');
+                        arg.push(c);
+                    }
+                }
                 state = ParseState::STRING;
             }
         }

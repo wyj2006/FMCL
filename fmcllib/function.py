@@ -5,6 +5,7 @@ import os
 from functools import reduce
 from typing import Literal, TypedDict
 
+import qtawesome as qta
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QIcon
 from qfluentwidgets import FluentIcon
@@ -98,5 +99,7 @@ class Function:
                 return getattr(FluentIcon, self.function_info["icon"]["value"]).icon()
             case "QIcon":
                 return QIcon(self.function_info["icon"]["value"])
+            case "QtAwesome":
+                return qta.icon(self.function_info["icon"]["value"])
         logging.error(f"无法识别的function icon: {self.function_info['icon']}")
         return QCoreApplication.instance().windowIcon()

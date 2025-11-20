@@ -3,12 +3,14 @@ pub mod filesystem;
 pub mod function;
 pub mod logging;
 pub mod setting;
+pub mod task;
 
 pub use address::{address_service, register_address};
 pub use filesystem::filesystem_service;
 pub use function::function_service;
 pub use logging::logging_service;
 pub use setting::setting_service;
+pub use task::task_service;
 
 use crate::common::parse_command;
 use log::{error, info};

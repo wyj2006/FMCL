@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QTableWidgetItem, QWidget
 from qfluentwidgets import FluentIcon
 from ui_address_manager import Ui_AddressManager
 
-from fmcllib.address import AddressRegisterInfo, getall_address
+from fmcllib.address import getall_address
 
 
 class AddressManager(QWidget, Ui_AddressManager):

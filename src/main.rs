@@ -2,6 +2,7 @@ mod common;
 mod fcb;
 mod service;
 mod setting_item;
+mod tcb;
 
 use crate::common::WORK_DIR;
 use crate::service::function::kill_all_functions;
@@ -15,6 +16,7 @@ use service::function::{remove_stopped_functions, run_function, running_function
 use service::setting::save_settings;
 use service::{
     address_service, filesystem_service, function_service, logging_service, setting_service,
+    task_service,
 };
 use std::collections::hash_map::DefaultHasher;
 use std::fs::OpenOptions;
@@ -122,6 +124,11 @@ fn main() {
     thread::Builder::new()
         .name("address".to_string())
         .spawn(address_service)
+        .unwrap();
+
+    thread::Builder::new()
+        .name("task".to_string())
+        .spawn(task_service)
         .unwrap();
 
     {

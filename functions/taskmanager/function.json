@@ -1,0 +1,11 @@
+{
+    "display_name": "任务管理器",
+    "translation_context": "TaskManager",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "ei.tasks"
+    },
+    "command": {
+        "template": "python"
+    }
+}
