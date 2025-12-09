@@ -19,20 +19,27 @@ class TaskManager(QWidget, Ui_TaskManager):
         self.refresh_timer.start(1000)
 
     def refresh(self):
-        exist_task = []
+        exist_task_id = [0]
         for task in getall_task().values():
-            exist_task.append(task)
+            exist_task_id.append(task["id"])
             if task["parent"] not in self.task_items:
                 continue
-            if task["id"] in self.task_items:
-                continue
-            item = QTreeWidgetItem(self.task_items[task["parent"]])
+            if task["id"] not in self.task_items:
+                item = QTreeWidgetItem(self.task_items[task["parent"]])
+                self.task_view.addTopLevelItem(item)
+                self.task_items[task["id"]] = item
+            else:
+                item = self.task_items[task["id"]]
             item.setText(0, str(task["id"]))
             item.setText(1, task["name"])
             item.setText(2, str(task["progress"]))
             item.setText(3, task["current_work"])
-            self.task_view.addTopLevelItem(item)
-            self.task_items[task["id"]] = item
         for task_id in tuple(self.task_items):
-            if task_id not in exist_task:
-                self.task_items.pop(task_id)
+            if task_id not in exist_task_id:
+                item = self.task_items.pop(task_id)
+                if item.parent() != None:
+                    item.parent().removeChild(item)
+                else:
+                    self.task_view.takeTopLevelItem(
+                        self.task_view.indexOfTopLevelItem(item)
+                    )

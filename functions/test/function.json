@@ -1,0 +1,7 @@
+{
+    "display_name": "测试",
+    "translation_context": "Test",
+    "command": {
+        "template": "python"
+    }
+}
