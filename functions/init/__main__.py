@@ -9,11 +9,11 @@ from fmcllib.setting import Setting
 
 for name in listdir("/functions").unwrap_or([]):
     if is_ok(
-        reuslt := fileinfo(
+        result := fileinfo(
             f"/functions/{name}/defaultsettings.json",
         )
     ):
-        for native_path in reuslt.ok_value["native_paths"]:
+        for native_path in result.ok_value["native_paths"]:
             mount_native("/defaultsettings.json", native_path)
 
 for startup in Setting().get("system.startups").unwrap_or([]):

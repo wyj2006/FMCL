@@ -14,6 +14,7 @@ def dispatch_card(
     from .bool_card import BoolCard
     from .default_card import DefaultCard
     from .dict_card import DictCard
+    from .int_card import IntCard
     from .list_card import ListCard
     from .mirror_card import MirrorCard
     from .string_card import StringCard
@@ -37,6 +38,8 @@ def dispatch_card(
     match value:
         case bool():
             card_cls = BoolCard
+        case int():
+            card_cls = IntCard
         case str():
             card_cls = StringCard
         case list():
