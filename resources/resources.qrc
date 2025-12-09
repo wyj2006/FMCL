@@ -23,5 +23,12 @@
     <file>image/skin/wide/steve.png</file>
     <file>image/skin/wide/sunny.png</file>
     <file>image/skin/wide/zuri.png</file>
+
+    <file>image/command.png</file>
+    <file>image/craft_table.png</file>
+    <file>image/grass.png</file>
+    <file>image/command@2x.png</file>
+    <file>image/craft_table@2x.png</file>
+    <file>image/grass@2x.png</file>
   </qresource>
 </RCC>

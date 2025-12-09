@@ -1,4 +1,5 @@
 use std::env;
+use std::path::Path;
 use std::sync::LazyLock;
 
 pub static WORK_DIR: LazyLock<String> = LazyLock::new(|| {
@@ -16,7 +17,11 @@ pub static WORK_DIR: LazyLock<String> = LazyLock::new(|| {
                 .unwrap(),
         )
     } else {
-        String::from(env::current_exe().unwrap().to_str().unwrap()) + "/FMCL"
+        Path::new(env::current_exe().unwrap().to_str().unwrap())
+            .join("FMCL")
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 });
 

@@ -34,5 +34,21 @@
         "display_name": "外置登录服务器",
         "translation_context": "Account",
         "setting_card": "edit_in_account_manager_for_servers"
+    },
+    "game": {
+        "display_name": "游戏",
+        "translation_context": "Game"
+    },
+    "game.dirs": {
+        "default_value": [
+            ".minecraft"
+        ],
+        "display_name": "游戏目录",
+        "translation_context": "Game"
+    },
+    "game.cur_dir_index": {
+        "default_value": 0,
+        "display_name": "当前选择的游戏目录索引",
+        "translation_context": "Game"
     }
 }

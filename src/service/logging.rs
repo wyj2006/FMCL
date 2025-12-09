@@ -9,7 +9,7 @@ pub fn logging(level: String, thread_name: String, message: String) {
         .spawn(move || match level.as_str() {
             "debug" => debug!("{}", message),
             "info" => info!("{}", message),
-            "warn" => warn!("{}", message),
+            "warning" => warn!("{}", message),
             "error" => error!("{}", message),
             "critical" => error!("{}", message),
             _ => {}

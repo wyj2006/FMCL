@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GameDownloader</class>
+ <widget class="QWidget" name="GameDownloader">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>618</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>游戏下载器</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="4">
+    <widget class="PushButton" name="download_button">
+     <property name="text">
+      <string>下载</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="6">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="TransparentTogglePushButton" name="select_original">
+       <property name="text">
+        <string>原版</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="1" colspan="2">
+    <widget class="LineEdit" name="instance_name"/>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>游戏实例名称</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="6">
+    <widget class="QStackedWidget" name="selector_stack"/>
+   </item>
+   <item row="0" column="5">
+    <widget class="PushButton" name="download_install_button">
+     <property name="text">
+      <string>下载并安装</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="CheckBox" name="auto_set_instance_name">
+     <property name="text">
+      <string>自动设置实例名称</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="6">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="SegmentedWidget" name="pivot" native="true"/>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>TransparentTogglePushButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>SegmentedWidget</class>
+   <extends>QWidget</extends>
+   <header>qfluentwidgets</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PushButton</class>
+   <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>CheckBox</class>
+   <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

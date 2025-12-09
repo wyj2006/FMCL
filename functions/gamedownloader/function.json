@@ -1,0 +1,11 @@
+{
+    "display_name": "游戏下载器",
+    "translation_context": "GameDownloader",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "DOWNLOAD"
+    },
+    "command": {
+        "template": "python"
+    }
+}

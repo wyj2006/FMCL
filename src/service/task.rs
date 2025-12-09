@@ -39,6 +39,9 @@ pub fn task_service() {
                         ..TCB::default()
                     },
                 );
+                if let Some(t) = tasks.get_mut(&parent_id) {
+                    t.children.push(*task_id);
+                }
                 writer
                     .write_all(
                         json! ({
@@ -60,7 +63,9 @@ pub fn task_service() {
                 };
                 if let Some(tcb) = tasks.remove(&id) {
                     if let Some(parent) = tasks.get_mut(&tcb.parent) {
-                        parent.children.remove(tcb.id);
+                        if let Some(index) = parent.children.iter().position(|x| *x == tcb.id) {
+                            parent.children.remove(index);
+                        }
                     }
                 } else {
                     error_log_and_write(writer, format!("Task {id} does not exists"));

@@ -6,6 +6,7 @@ use log::warn;
 use serde_json::{self, json};
 use std::fs;
 use std::io::Write;
+use std::path::Path;
 use std::sync::Mutex;
 use std::vec;
 
@@ -54,7 +55,13 @@ pub fn get_or_create_fcb<'a, 'b>(
                 native_paths: {
                     let mut native_paths = Vec::new();
                     for native_path in &cur.native_paths {
-                        native_paths.push(format!("{}/{name}", native_path));
+                        native_paths.push(
+                            Path::new(&native_path)
+                                .join(name)
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
+                        );
                     }
                     native_paths
                 },
@@ -106,7 +113,21 @@ pub fn listdir(parent: &mut FCB, path: &String) -> Result<Vec<String>, String> {
 pub fn mount_native(parent: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
     match get_or_create_fcb(parent, path) {
         Ok(t) => {
-            t.native_paths.push(native_path.clone());
+            if !t.native_paths.contains(native_path) {
+                t.native_paths.push(native_path.clone());
+            }
+            Ok(())
+        }
+        Err(e) => Err(e),
+    }
+}
+
+pub fn unmount_native(parent: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
+    match get_or_create_fcb(parent, path) {
+        Ok(t) => {
+            if let Some(index) = t.native_paths.iter().position(|x| x == native_path) {
+                t.native_paths.remove(index);
+            }
             Ok(())
         }
         Err(e) => Err(e),
@@ -182,6 +203,17 @@ pub fn filesystem_service() {
                 let path = &args[1];
                 let native_path = &args[2];
                 match mount_native(parent, path, native_path) {
+                    Ok(_) => {
+                        write_ok(writer);
+                    }
+                    Err(e) => {
+                        error_log_and_write(writer, e);
+                    }
+                }
+            } else if args.len() >= 3 && args[0] == "unmount_native" {
+                let path = &args[1];
+                let native_path = &args[2];
+                match unmount_native(parent, path, native_path) {
                     Ok(_) => {
                         write_ok(writer);
                     }

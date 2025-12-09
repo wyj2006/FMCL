@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::Path};
 
 pub struct FCB {
     pub name: String,
@@ -49,7 +49,11 @@ impl FCB {
                 None => {
                     self.children.push(FCB {
                         name: String::from(name),
-                        path: format!("{}/{name}", self.path),
+                        path: Path::new(&self.path)
+                            .join(name)
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
                         native_paths: vec![path],
                         children: vec![],
                     });

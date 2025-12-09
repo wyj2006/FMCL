@@ -13,7 +13,7 @@ lazy_static! {
     pub static ref running_functions: Mutex<HashMap<String, Child>> = Mutex::new(HashMap::new());
 }
 
-pub fn run_function(command: &Map<String, Value>) -> Result<(), String> {
+pub fn run_function(command: &Map<String, Value>) -> Result<u128, String> {
     let mut program = match command.get("program") {
         Some(Value::String(program)) => Some(program.to_string()),
         Some(_) | None => None,
@@ -63,15 +63,15 @@ pub fn run_function(command: &Map<String, Value>) -> Result<(), String> {
     .args(args)
     .spawn()
     .unwrap();
-    running_functions.lock().unwrap().insert(
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_millis()
-            .to_string(),
-        child,
-    );
-    Ok(())
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
+    running_functions
+        .lock()
+        .unwrap()
+        .insert(timestamp.to_string(), child);
+    Ok(timestamp)
 }
 
 ///移除已经结束的功能

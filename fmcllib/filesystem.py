@@ -46,6 +46,17 @@ def mount_native(path: str, native_path: str) -> Result[None, str]:
     return Ok(None)
 
 
+def unmount_native(path: str, native_path: str) -> Result[None, str]:
+    client.sendall(
+        f"unmount_native {os.path.join(current_dir,path)} {native_path}\0".encode()
+    )
+    result = json.loads(client.recv(1024 * 1024))
+
+    if "error_msg" in result:
+        return Err(result["error_msg"])
+    return Ok(None)
+
+
 def makedirs(path: str) -> Result[None, str]:
     client.sendall(f"makedirs {path}\0".encode())
     result = json.loads(client.recv(1024 * 1024))
@@ -55,7 +66,7 @@ def makedirs(path: str) -> Result[None, str]:
     return Ok(None)
 
 
-def readall[T](path: str, handler: Callable[[list[str]], T] = None) -> Result[T, str]:
+def readall[T](path: str, handler: Callable[[list[bytes]], T] = None) -> Result[T, str]:
     """读取path中的所有内容, 并通过handler处理这些内容"""
     match fileinfo(path):
         case Ok(info):

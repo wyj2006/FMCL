@@ -13,7 +13,7 @@ pub use setting::setting_service;
 pub use task::task_service;
 
 use crate::common::parse_command;
-use log::{error, info};
+use log::{debug, error, info};
 use serde_json::json;
 use std::io::Write;
 use std::io::{self, BufRead, BufReader, BufWriter};
@@ -124,7 +124,7 @@ where
                     let buf = String::from(&buf[..buf.len() - 1]); //去除最后的\0
 
                     let args = parse_command(&buf);
-                    info!("Read: {buf:?} {args:?}");
+                    debug!("Read: {buf:?} {args:?}");
 
                     handler(&stream, &mut reader, &mut writer, buf, args);
                 }

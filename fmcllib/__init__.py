@@ -26,7 +26,7 @@ class RemoteHandler(logging.Handler):
             " ".join(
                 [
                     record.levelname.lower(),
-                    record.threadName,
+                    f'"{record.threadName}"',
                     base64.b64encode((record.msg % record.args).encode()).decode()
                     + "\0",
                 ]
