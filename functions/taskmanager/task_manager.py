@@ -34,7 +34,9 @@ class TaskManager(QWidget, Ui_TaskManager):
             item.setText(1, task["name"])
             item.setText(2, str(task["progress"]))
             item.setText(3, task["current_work"])
-        for task_id in tuple(self.task_items):
+        # 父任务的id一定比子任务的id大
+        # 先移除子任务在移除父任务
+        for task_id in reversed(sorted(self.task_items)):
             if task_id not in exist_task_id:
                 item = self.task_items.pop(task_id)
                 if item.parent() != None:
