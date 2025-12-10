@@ -72,10 +72,10 @@ class OriginalSelector(QWidget, Ui_OriginalSelector):
                     self.versionSelected.emit(viewer.version_info["id"]),
                 )
             )
-            self.id_filter.searchSignal.connect(
+            self.version_filter.searchSignal.connect(
                 lambda _, viewer=viewer: self.filteViewer(viewer)
             )
-            self.id_filter.clearSignal.connect(
+            self.version_filter.clearSignal.connect(
                 lambda viewer=viewer: self.filteViewer(viewer)
             )
             self.type_filter.currentIndexChanged.connect(
@@ -88,7 +88,7 @@ class OriginalSelector(QWidget, Ui_OriginalSelector):
         )
 
     def filteViewer(self, viewer: VersionInfoViewer):
-        id = self.id_filter.text()
+        id = self.version_filter.text()
         type = self.type_filter.currentData()
         if id in viewer.version_info["id"] and type in viewer.version_info["type"]:
             viewer.show()

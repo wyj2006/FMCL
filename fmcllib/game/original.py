@@ -103,16 +103,29 @@ def download_original(
 def install_original(game_dir: str, version_json: VersionJson):
     task_id = create_task("安装原版").unwrap_or(0)
 
-    modify_task(task_id, "current_work", "安装库")
-    install_libraries(game_dir, version_json, task_id)
+    t: list[threading.Thread] = []
 
-    modify_task(task_id, "current_work", "安装资源文件")
-    install_assets(game_dir, version_json, task_id)
+    t.append(
+        threading.Thread(
+            target=install_libraries, args=(game_dir, version_json, task_id)
+        )
+    )
+
+    t.append(
+        threading.Thread(target=install_assets, args=(game_dir, version_json, task_id))
+    )
+
+    for i in t:
+        i.start()
+    for i in t:
+        i.join()
 
     remove_task(task_id)
 
 
 def install_libraries(game_dir: str, version_json: VersionJson, parent_task_id=0):
+    task_id = create_task("安装库", parent_task_id).unwrap_or(0)
+
     t: list[threading.Thread] = []
 
     for library in version_json["libraries"]:
@@ -130,7 +143,7 @@ def install_libraries(game_dir: str, version_json: VersionJson, parent_task_id=0
                             library["downloads"]["artifact"]["path"],
                         ),
                     ),
-                    kwargs={"parent_task_id": parent_task_id},
+                    kwargs={"parent_task_id": task_id},
                 )
             )
         if "classifiers" in library["downloads"]:
@@ -148,7 +161,7 @@ def install_libraries(game_dir: str, version_json: VersionJson, parent_task_id=0
                             library["downloads"]["classifiers"][natives_key]["path"],
                         ),
                     ),
-                    kwargs={"parent_task_id": parent_task_id},
+                    kwargs={"parent_task_id": task_id},
                 )
             )
 
@@ -156,6 +169,8 @@ def install_libraries(game_dir: str, version_json: VersionJson, parent_task_id=0
         i.start()
     for i in t:
         i.join()
+
+    remove_task(task_id)
 
 
 def download_asset_index(
@@ -170,9 +185,11 @@ def download_asset_index(
 
 def install_assets(game_dir: str, version_json: VersionJson, parent_task_id=0):
     """会下载不存在或者被更改的资源文件"""
+    task_id = create_task("安装资源", parent_task_id).unwrap_or(0)
+
     t: list[threading.Thread] = []
 
-    asset_index = download_asset_index(game_dir, version_json, parent_task_id)
+    asset_index = download_asset_index(game_dir, version_json, task_id)
     for path, info in asset_index["objects"].items():
         asset_hash = info["hash"]
         path = os.path.join(game_dir, "assets", "objects", asset_hash[:2], asset_hash)
@@ -182,7 +199,7 @@ def install_assets(game_dir: str, version_json: VersionJson, parent_task_id=0):
                 threading.Thread(
                     target=download,
                     args=(url, path),
-                    kwargs={"parent_task_id": parent_task_id},
+                    kwargs={"parent_task_id": task_id},
                 )
             )
 
@@ -190,6 +207,8 @@ def install_assets(game_dir: str, version_json: VersionJson, parent_task_id=0):
         i.start()
     for i in t:
         i.join()
+
+    remove_task(task_id)
 
 
 def parse_rule(rules: list[Rule]) -> bool:

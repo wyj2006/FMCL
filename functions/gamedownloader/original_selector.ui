@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="SearchLineEdit" name="id_filter"/>
+    <widget class="SearchLineEdit" name="version_filter"/>
    </item>
    <item row="0" column="1">
     <widget class="ComboBox" name="type_filter">
