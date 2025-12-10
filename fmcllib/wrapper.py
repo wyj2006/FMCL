@@ -1,6 +1,8 @@
 import inspect
+import threading
 from collections.abc import Hashable
 from functools import wraps
+from typing import Callable
 
 
 def singleton[T](cls: type[T]) -> type[T]:
@@ -36,3 +38,23 @@ def singleton[T](cls: type[T]) -> type[T]:
     cls.__new__ = __new__
     cls.__init__ = __init__
     return cls
+
+
+def safe_function(lock: threading.Lock):
+    """使用提供的lock将整个函数锁住"""
+
+    def wrapper[T](func: Callable[..., T]):
+        @wraps(func)
+        def inner(*args, **kwargs) -> T:
+            lock.acquire()
+            try:
+                ret = func(*args, **kwargs)
+            except:
+                raise
+            finally:
+                lock.release()
+            return ret
+
+        return inner
+
+    return wrapper

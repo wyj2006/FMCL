@@ -2,6 +2,7 @@ import base64
 import json
 import logging
 import os
+import threading
 from functools import reduce
 from typing import Literal, TypedDict
 
@@ -13,9 +14,11 @@ from result import Err, Ok, Result
 
 from fmcllib.address import get_service_connection
 from fmcllib.filesystem import fileinfo, listdir, readall
-from fmcllib.singleton import singleton
+from fmcllib.wrapper import safe_function, singleton
 
 tr = QCoreApplication.translate
+client = get_service_connection("function")
+lock = threading.Lock()
 
 
 class FunctionInfoIcon(TypedDict):
@@ -66,18 +69,18 @@ class Function:
                 self.function_info,
             ),
         )
-        self.socket = get_service_connection("function")
 
+    @safe_function(lock)
     def run(self, args: list[str] = None) -> Result[None, str]:
         if args == None:
             args = []
         command = {"cwd": os.path.abspath(self.native_paths[0])}
         command |= self.function_info["command"]
 
-        self.socket.sendall(
+        client.sendall(
             f"run {base64.b64encode(json.dumps(command).encode()).decode()}\0".encode()
         )
-        result = json.loads(self.socket.recv(1024 * 1024))
+        result = json.loads(client.recv(1024 * 1024))
 
         if "error_msg" in result:
             return Err(result["error_msg"])
