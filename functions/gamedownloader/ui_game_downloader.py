@@ -48,8 +48,6 @@ class Ui_GameDownloader(object):
         self.pivot = SegmentedWidget(parent=GameDownloader)
         self.pivot.setObjectName("pivot")
         self.horizontalLayout_2.addWidget(self.pivot)
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem1)
         self.gridLayout.addLayout(self.horizontalLayout_2, 2, 0, 1, 6)
 
         self.retranslateUi(GameDownloader)

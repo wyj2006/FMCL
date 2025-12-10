@@ -24,6 +24,7 @@ class AddressManager(QWidget, Ui_AddressManager):
         registered = getall_address()
         self.viewer.setRowCount(len(registered))
         for i, (name, value) in enumerate(registered.items()):
-            self.viewer.setItem(i, 0, QTableWidgetItem(name))
-            self.viewer.setItem(i, 1, QTableWidgetItem(value["ip"]))
-            self.viewer.setItem(i, 2, QTableWidgetItem(value["port"]))
+            for j, v in enumerate([name, value["ip"], value["port"]]):
+                item = QTableWidgetItem(v)
+                item.setToolTip(v)
+                self.viewer.setItem(i, j, item)

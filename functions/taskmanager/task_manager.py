@@ -30,10 +30,16 @@ class TaskManager(QWidget, Ui_TaskManager):
                 self.task_items[task["id"]] = item
             else:
                 item = self.task_items[task["id"]]
-            item.setText(0, str(task["id"]))
-            item.setText(1, task["name"])
-            item.setText(2, str(task["progress"]))
-            item.setText(3, task["current_work"])
+            for i, v in enumerate(
+                [
+                    str(task["id"]),
+                    task["name"],
+                    str(task["progress"]),
+                    task["current_work"],
+                ]
+            ):
+                item.setText(i, v)
+                item.setToolTip(i, v)
         # 父任务的id一定比子任务的id大
         # 先移除子任务在移除父任务
         for task_id in reversed(sorted(self.task_items)):

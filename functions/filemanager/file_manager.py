@@ -87,7 +87,7 @@ class FileSystemModel(QAbstractItemModel):
 
     def data(self, index, role=Qt.ItemDataRole.DisplayRole):
         match role:
-            case Qt.ItemDataRole.DisplayRole:
+            case Qt.ItemDataRole.DisplayRole | Qt.ItemDataRole.ToolTipRole:
                 try:
                     return self.getItem(index).data(index.column())
                 except:
