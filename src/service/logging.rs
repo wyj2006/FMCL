@@ -22,7 +22,7 @@ pub fn logging_service() {
         "logging".to_string(),
         String::from("127.0.0.1:0"),
         |_stream, _reader, writer, _buf, args| {
-            if args.len() >= 2 {
+            if args.len() >= 3 {
                 let message = match BASE64_STANDARD.decode(args[2].clone()) {
                     Ok(t) => t,
                     Err(e) => {

@@ -1,4 +1,5 @@
 import base64
+import faulthandler
 import logging
 import sys
 import traceback
@@ -78,5 +79,6 @@ if getattr(sys, "use_kernel_logging", True):
         logger.removeHandler(h)
     logger.addHandler(RemoteHandler())
 
-if getattr(sys, "handle_uncaught_exceptions", True):
+if getattr(sys, "handel_faults", True):
     sys.excepthook = excepthook
+    faulthandler.enable(open("fault_dump.txt", mode="w", encoding="utf-8"))

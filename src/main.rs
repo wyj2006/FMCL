@@ -25,6 +25,7 @@ use service::{
 use std::collections::hash_map::DefaultHasher;
 use std::fs::OpenOptions;
 use std::hash::{Hash, Hasher};
+use std::path::Path;
 use std::process;
 use std::thread;
 use std::time::Duration;
@@ -209,33 +210,38 @@ fn main() {
         }
     };
 
-    let watcher = Hotwatch::new();
-    match get_fcb(
-        &mut fcb_root.lock().unwrap(),
-        &("/settings.json".to_string()),
-    ) {
-        Ok(t) => {
-            match watcher {
-                Ok(mut watcher) => {
-                    if let Err(e) = watcher.watch(t.native_paths[0].clone(), |event| {
-                        let EventKind::Modify(_) = event.kind else {
-                            return;
-                        };
-                        //在/settings.json更改后更新/.minecraft对应的本地路径
-                        update_minecraft_mount();
-                    }) {
-                        error!("Cannot watch /settings.json: {e}");
-                    }
-                }
-                Err(e) => {
-                    error!("Cannot watch /settings.json: {e}");
-                }
+    let _watcher = match Hotwatch::new() {
+        Ok(mut t) => {
+            if let Err(e) = t.watch(
+                match get_fcb(
+                    &mut fcb_root.lock().unwrap(),
+                    &("/settings.json".to_string()),
+                ) {
+                    Ok(t) => t.native_paths[0].clone(),
+                    Err(_) => Path::new(&WORK_DIR.to_string())
+                        .join("settings.json")
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                },
+                |event| {
+                    let EventKind::Modify(_) = event.kind else {
+                        return;
+                    };
+                    //在/settings.json更改后更新/.minecraft对应的本地路径
+                    update_minecraft_mount();
+                },
+            ) {
+                error!("Cannot watch /settings.json: {e}");
             }
+            //防止watcher被drop
+            Some(t)
         }
         Err(e) => {
-            error!("Cannot watch /settings.json: {e}");
+            error!("Fail to create a watcher: {e}");
+            None
         }
-    }
+    };
     update_minecraft_mount();
 
     loop {
