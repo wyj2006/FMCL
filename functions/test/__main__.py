@@ -6,7 +6,13 @@ from PyQt6.QtWidgets import QApplication, QVBoxLayout, QWidget
 from qfluentwidgets import PushButton
 
 import resources as _
-from fmcllib.task import create_task, modify_task, remove_task
+from fmcllib.task import (
+    ATTR_CURRENT_WORK,
+    ATTR_PROGRESS,
+    create_task,
+    modify_task,
+    remove_task,
+)
 
 
 class Test(QWidget):
@@ -30,13 +36,13 @@ class Test(QWidget):
     def single_task(self, parent=0, n=10000):
         task_id = create_task("Single", parent).unwrap()
         for i in range(n):
-            modify_task(task_id, "progress", i / n)
+            modify_task(task_id, ATTR_PROGRESS, i / n)
         remove_task(task_id)
 
     def parent_task(self):
         parent_task = create_task("Parent").unwrap()
         self.single_task(parent_task, 50000)
-        modify_task(parent_task, "current_work", "waiting")
+        modify_task(parent_task, ATTR_CURRENT_WORK, "waiting")
         time.sleep(5)
         remove_task(parent_task)
 

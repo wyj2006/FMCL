@@ -1,4 +1,5 @@
-use super::{check_conntection, error_log_and_write, service_template};
+use super::{check_conntection, error_log_and_write, service_template, write_ok};
+use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use serde_json::{self, json};
 use std::collections::HashMap;
@@ -17,6 +18,28 @@ pub fn register_address(name: &String, ip: &String, port: &String) {
         .lock()
         .unwrap()
         .insert(name.clone(), (ip.clone(), port.clone()));
+}
+
+#[derive(Parser)]
+struct ServiceCommand {
+    #[command(subcommand)]
+    sub_command: SubCommand,
+}
+
+#[derive(Subcommand)]
+enum SubCommand {
+    Register {
+        name: String,
+        ip: String,
+        port: String,
+    },
+    Unregister {
+        name: String,
+    },
+    Getall,
+    Get {
+        name: String,
+    },
 }
 
 pub fn unregister_address(name: &String) {
@@ -54,42 +77,55 @@ pub fn address_service() {
             env::var("FMCL_ADDRESS_SERVER_PORT").unwrap_or("1024".to_string())
         )),
         |_stream, _reader, writer, _buf, args| {
-            if args.len() >= 4 && args[0] == "register" {
-                register_address(&args[1], &args[2], &args[3]);
-            } else if args.len() >= 2 && args[0] == "unregister" {
-                unregister_address(&args[1]);
-            } else if args.len() >= 1 && args[0] == "getall" {
-                let registered = registered_address.lock().unwrap();
-                let mut data = json!({});
-                for (key, value) in registered.iter() {
-                    data[key] = json!({
-                        "name":key,
-                        "ip":value.0,
-                        "port":value.1
-                    });
-                }
-                writer.write_all(data.to_string().as_bytes()).unwrap();
-                writer.flush().unwrap();
-            } else if args.len() >= 2 && args[0] == "get" {
-                let registered = registered_address.lock().unwrap();
-                let name = &args[1];
-                if registered.contains_key(name) {
-                    writer
-                        .write_all(
-                            json!({
-                                "name":name,
-                                "ip":registered[name].0,
-                                "port":registered[name].1
-                            })
-                            .to_string()
-                            .as_bytes(),
-                        )
-                        .unwrap();
-                    writer.flush().unwrap();
-                } else {
-                    error_log_and_write(writer, format!("{name} does not exists"));
-                }
-            }
+            match ServiceCommand::try_parse_from({
+                let mut t = vec!["address".to_string()];
+                t.extend(args);
+                t
+            }) {
+                Ok(ServiceCommand { sub_command }) => match sub_command {
+                    SubCommand::Register { name, ip, port } => {
+                        register_address(&name, &ip, &port);
+                        write_ok(writer);
+                    }
+                    SubCommand::Unregister { name } => {
+                        unregister_address(&name);
+                        write_ok(writer);
+                    }
+                    SubCommand::Get { name } => {
+                        let registered = registered_address.lock().unwrap();
+                        if registered.contains_key(&name) {
+                            writer
+                                .write_all(
+                                    json!({
+                                        "name":name,
+                                        "ip":registered[&name].0,
+                                        "port":registered[&name].1
+                                    })
+                                    .to_string()
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+                            writer.flush().unwrap();
+                        } else {
+                            error_log_and_write(writer, format!("{name} does not exists"));
+                        }
+                    }
+                    SubCommand::Getall => {
+                        let registered = registered_address.lock().unwrap();
+                        let mut data = json!({});
+                        for (key, value) in registered.iter() {
+                            data[key] = json!({
+                                "name":key,
+                                "ip":value.0,
+                                "port":value.1
+                            });
+                        }
+                        writer.write_all(data.to_string().as_bytes()).unwrap();
+                        writer.flush().unwrap();
+                    }
+                },
+                Err(e) => error_log_and_write(writer, e.to_string()),
+            };
         },
         |_stream| {
             remove_address_disconnected();

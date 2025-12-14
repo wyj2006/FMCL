@@ -43,7 +43,7 @@ def listdir(path: str) -> Result[list[str], str]:
 @safe_function(lock)
 def mount_native(path: str, native_path: str) -> Result[None, str]:
     client.sendall(
-        f"mount_native {os.path.join(current_dir,path)} {native_path}\0".encode()
+        f"mount-native {os.path.join(current_dir,path)} {native_path}\0".encode()
     )
     result = json.loads(client.recv(1024 * 1024))
 
@@ -55,7 +55,7 @@ def mount_native(path: str, native_path: str) -> Result[None, str]:
 @safe_function(lock)
 def unmount_native(path: str, native_path: str) -> Result[None, str]:
     client.sendall(
-        f"unmount_native {os.path.join(current_dir,path)} {native_path}\0".encode()
+        f"unmount-native {os.path.join(current_dir,path)} {native_path}\0".encode()
     )
     result = json.loads(client.recv(1024 * 1024))
 

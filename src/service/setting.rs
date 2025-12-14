@@ -3,6 +3,7 @@ use super::{error_log_and_write, service_template, write_ok};
 use crate::fcb::FCB;
 use crate::setting_item::SettingItem;
 use base64::prelude::*;
+use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::{error, warn};
 use serde_json::{self, Map, Value, json};
@@ -17,6 +18,38 @@ lazy_static! {
         name: "root".to_string(),
         ..Default::default()
     });
+}
+
+#[derive(Parser)]
+struct ServiceCommand {
+    #[command(subcommand)]
+    sub_command: SubCommand,
+}
+
+#[derive(Subcommand)]
+enum SubCommand {
+    Get {
+        key: String,
+    },
+    ListChildren {
+        key: String,
+    },
+    AddOrUpdate {
+        key: String,
+        value: String,
+    },
+    AddOrUpdateDefault {
+        key: String,
+        value: String,
+    },
+    AddOrUpdateAttr {
+        key: String,
+        attr_name: String,
+        value: String,
+    },
+    GenerateJson {
+        key: String,
+    },
 }
 
 pub fn get_settingitem<'a, 'b>(
@@ -202,123 +235,131 @@ pub fn setting_service() {
         String::from("127.0.0.1:0"),
         |_stream, _reader, writer, _buf, args| {
             let parent: &mut SettingItem = &mut setting_root.lock().unwrap();
-            if args.len() >= 2 && args[0] == "get" {
-                let key = &args[1];
-                match get_settingitem(parent, key) {
-                    Ok(t) => {
-                        writer
-                            .write_all(
-                                json!({
-                                    "name":t.name,
-                                    "value":t.value,
-                                    "default_value":t.default_value,
-                                    "attribute":Value::Object(t.attribute.clone())
-                                })
-                                .to_string()
-                                .as_bytes(),
-                            )
-                            .unwrap();
-                        writer.flush().unwrap();
+            match ServiceCommand::try_parse_from({
+                let mut t = vec!["setting".to_string()];
+                t.extend(args);
+                t
+            }) {
+                Ok(ServiceCommand { sub_command }) => match sub_command {
+                    SubCommand::Get { key } => match get_settingitem(parent, &key) {
+                        Ok(t) => {
+                            writer
+                                .write_all(
+                                    json!({
+                                        "name":t.name,
+                                        "value":t.value,
+                                        "default_value":t.default_value,
+                                        "attribute":Value::Object(t.attribute.clone())
+                                    })
+                                    .to_string()
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+                            writer.flush().unwrap();
+                        }
+                        Err(e) => {
+                            error_log_and_write(writer, e);
+                        }
+                    },
+                    SubCommand::ListChildren { key } => match list_children(parent, &key) {
+                        Ok(t) => {
+                            writer
+                                .write_all(
+                                    json!({
+                                        "names":t
+                                    })
+                                    .to_string()
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+                            writer.flush().unwrap();
+                        }
+                        Err(e) => {
+                            error_log_and_write(writer, e);
+                        }
+                    },
+                    SubCommand::AddOrUpdateDefault { key, value } => {
+                        let json_str = match BASE64_STANDARD.decode(value) {
+                            Ok(t) => t,
+                            Err(e) => {
+                                error_log_and_write(writer, e.to_string());
+                                return;
+                            }
+                        };
+                        let value: Value =
+                            match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    error_log_and_write(writer, e.to_string());
+                                    return;
+                                }
+                            };
+                        if let Err(e) = add_or_update_default_setting(parent, &key, &value) {
+                            error_log_and_write(writer, e);
+                        } else {
+                            write_ok(writer);
+                        }
                     }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
+                    SubCommand::AddOrUpdate { key, value } => {
+                        let json_str = match BASE64_STANDARD.decode(value) {
+                            Ok(t) => t,
+                            Err(e) => {
+                                error_log_and_write(writer, e.to_string());
+                                return;
+                            }
+                        };
+                        let value: Value =
+                            match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    error_log_and_write(writer, e.to_string());
+                                    return;
+                                }
+                            };
+                        if let Err(e) = add_or_update_setting(parent, &key, &value) {
+                            error_log_and_write(writer, e);
+                        } else {
+                            write_ok(writer);
+                        }
                     }
-                }
-            } else if args.len() >= 2 && args[0] == "list_children" {
-                let key = &args[1];
-                match list_children(parent, key) {
-                    Ok(t) => {
-                        writer
-                            .write_all(
-                                json!({
-                                    "names":t
-                                })
-                                .to_string()
-                                .as_bytes(),
-                            )
-                            .unwrap();
-                        writer.flush().unwrap();
+                    SubCommand::AddOrUpdateAttr {
+                        key,
+                        attr_name,
+                        value,
+                    } => {
+                        let json_str = match BASE64_STANDARD.decode(value) {
+                            Ok(t) => t,
+                            Err(e) => {
+                                error_log_and_write(writer, e.to_string());
+                                return;
+                            }
+                        };
+                        let value: Value =
+                            match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    error_log_and_write(writer, e.to_string());
+                                    return;
+                                }
+                            };
+                        if let Err(e) = add_or_update_attr(parent, &key, &attr_name, &value) {
+                            error_log_and_write(writer, e);
+                        } else {
+                            write_ok(writer);
+                        }
                     }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            } else if args.len() >= 3 && args[0] == "add_or_update_default" {
-                let key = &args[1];
-                let json_str = match BASE64_STANDARD.decode(args[2].clone()) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                let value: Value = match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                if let Err(e) = add_or_update_default_setting(parent, key, &value) {
-                    error_log_and_write(writer, e);
-                } else {
-                    write_ok(writer);
-                }
-            } else if args.len() >= 3 && args[0] == "add_or_update" {
-                let key = &args[1];
-                let json_str = match BASE64_STANDARD.decode(args[2].clone()) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                let value: Value = match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                if let Err(e) = add_or_update_setting(parent, key, &value) {
-                    error_log_and_write(writer, e);
-                } else {
-                    write_ok(writer);
-                }
-            } else if args.len() >= 4 && args[0] == "add_or_update_attr" {
-                let key = &args[1];
-                let attr_name = &args[2];
-                let json_str = match BASE64_STANDARD.decode(args[3].clone()) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                let value: Value = match serde_json::from_str(&String::from_utf8_lossy(&json_str)) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                if let Err(e) = add_or_update_attr(parent, key, attr_name, &value) {
-                    error_log_and_write(writer, e);
-                } else {
-                    write_ok(writer);
-                }
-            } else if args.len() >= 2 && args[0] == "generate_json" {
-                let key = &args[1];
-                match generate_setting_json(parent, key) {
-                    Ok(t) => {
-                        writer.write_all(t.to_string().as_bytes()).unwrap();
-                        writer.flush().unwrap();
-                    }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            }
+                    SubCommand::GenerateJson { key } => match generate_setting_json(parent, &key) {
+                        Ok(t) => {
+                            writer.write_all(t.to_string().as_bytes()).unwrap();
+                            writer.flush().unwrap();
+                        }
+                        Err(e) => {
+                            error_log_and_write(writer, e);
+                        }
+                    },
+                },
+                Err(e) => error_log_and_write(writer, e.to_string()),
+            };
         },
         |_stream| {},
     );

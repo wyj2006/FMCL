@@ -1,6 +1,6 @@
 import json
 import threading
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 from result import Err, Ok, Result
 
@@ -9,6 +9,10 @@ from fmcllib.wrapper import safe_function
 
 client = get_service_connection("task")
 lock = threading.Lock()
+
+ATTR_NAME = "name"
+ATTR_PROGRESS = "progress"
+ATTR_CURRENT_WORK = "current-work"
 
 
 class TaskDict(TypedDict):
@@ -39,7 +43,11 @@ def remove_task(id: int) -> Result[None, str]:
 
 
 @safe_function(lock)
-def modify_task(id: int, attr_name: str, value) -> Result[None, str]:
+def modify_task(
+    id: int,
+    attr_name: Literal["name", "progress", "current-work"],
+    value,
+) -> Result[None, str]:
     client.sendall(
         f'modify {id} {attr_name} "{str(value).replace('"','\\"')}"\0'.encode()
     )

@@ -61,7 +61,10 @@ impl FCB {
                 }
             },
             None => {
-                return Err(format!("{}/{name} not found", self.path));
+                return Err(format!(
+                    "{} not found",
+                    Path::new(&self.path).join(name).to_str().unwrap()
+                ));
             }
         }
     }

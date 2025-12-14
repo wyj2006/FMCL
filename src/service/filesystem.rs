@@ -1,6 +1,7 @@
 use super::{error_log_and_write, service_template, write_ok};
 use crate::common::WORK_DIR;
 use crate::fcb::FCB;
+use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::warn;
 use serde_json::{self, json};
@@ -17,6 +18,21 @@ lazy_static! {
         native_paths: vec![WORK_DIR.to_string()],
         children: vec![],
     });
+}
+
+#[derive(Parser)]
+struct ServiceCommand {
+    #[command(subcommand)]
+    sub_command: SubCommand,
+}
+
+#[derive(Subcommand)]
+enum SubCommand {
+    Fileinfo { path: String },
+    Listdir { path: String },
+    MountNative { path: String, native_path: String },
+    UnmountNative { path: String, native_path: String },
+    Makedirs { path: String },
 }
 
 pub fn get_fcb<'a, 'b>(parent: &'a mut FCB, path: &'b String) -> Result<&'a mut FCB, String> {
@@ -159,78 +175,81 @@ pub fn filesystem_service() {
         String::from("127.0.0.1:0"),
         |_stream, _reader, writer, _buf, args| {
             let parent = &mut fcb_root.lock().unwrap();
-            if args.len() >= 2 && args[0] == "fileinfo" {
-                let path = &args[1];
-                match get_fcb(parent, path) {
-                    Ok(t) => {
-                        writer
-                            .write_all(
-                                json!({
-                                    "name":t.name,
-                                    "path":t.path,
-                                    "native_paths":t.native_paths
-                                })
-                                .to_string()
-                                .as_bytes(),
-                            )
-                            .unwrap();
-                        writer.flush().unwrap();
+            match ServiceCommand::try_parse_from({
+                let mut t = vec!["filesystem".to_string()];
+                t.extend(args);
+                t
+            }) {
+                Ok(ServiceCommand { sub_command }) => match sub_command {
+                    SubCommand::Fileinfo { path } => {
+                        match get_fcb(parent, &path) {
+                            Ok(t) => {
+                                writer
+                                    .write_all(
+                                        json!({
+                                            "name":t.name,
+                                            "path":t.path,
+                                            "native_paths":t.native_paths
+                                        })
+                                        .to_string()
+                                        .as_bytes(),
+                                    )
+                                    .unwrap();
+                                writer.flush().unwrap();
+                            }
+                            Err(e) => {
+                                error_log_and_write(writer, e);
+                            }
+                        };
                     }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
+                    SubCommand::Listdir { path } => match listdir(parent, &path) {
+                        Ok(t) => {
+                            writer
+                                .write_all(
+                                    json!( {
+                                        "names":t
+                                    })
+                                    .to_string()
+                                    .as_bytes(),
+                                )
+                                .unwrap();
+                            writer.flush().unwrap();
+                        }
+                        Err(e) => {
+                            error_log_and_write(writer, e);
+                        }
+                    },
+                    SubCommand::MountNative { path, native_path } => {
+                        match mount_native(parent, &path, &native_path) {
+                            Ok(_) => {
+                                write_ok(writer);
+                            }
+                            Err(e) => {
+                                error_log_and_write(writer, e);
+                            }
+                        }
                     }
-                };
-            } else if args.len() >= 2 && args[0] == "listdir" {
-                let path = &args[1];
-                match listdir(parent, path) {
-                    Ok(t) => {
-                        writer
-                            .write_all(
-                                json!( {
-                                    "names":t
-                                })
-                                .to_string()
-                                .as_bytes(),
-                            )
-                            .unwrap();
-                        writer.flush().unwrap();
+                    SubCommand::UnmountNative { path, native_path } => {
+                        match unmount_native(parent, &path, &native_path) {
+                            Ok(_) => {
+                                write_ok(writer);
+                            }
+                            Err(e) => {
+                                error_log_and_write(writer, e);
+                            }
+                        }
                     }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            } else if args.len() >= 3 && args[0] == "mount_native" {
-                let path = &args[1];
-                let native_path = &args[2];
-                match mount_native(parent, path, native_path) {
-                    Ok(_) => {
-                        write_ok(writer);
-                    }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            } else if args.len() >= 3 && args[0] == "unmount_native" {
-                let path = &args[1];
-                let native_path = &args[2];
-                match unmount_native(parent, path, native_path) {
-                    Ok(_) => {
-                        write_ok(writer);
-                    }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            } else if args.len() >= 2 && args[0] == "makedirs" {
-                match makedirs(parent, &args[1]) {
-                    Ok(_) => {
-                        write_ok(writer);
-                    }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            }
+                    SubCommand::Makedirs { path } => match makedirs(parent, &path) {
+                        Ok(_) => {
+                            write_ok(writer);
+                        }
+                        Err(e) => {
+                            error_log_and_write(writer, e);
+                        }
+                    },
+                },
+                Err(e) => error_log_and_write(writer, e.to_string()),
+            };
         },
         |_stream| {},
     );

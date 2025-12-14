@@ -85,7 +85,7 @@ class Setting:
         client.sendall(
             " ".join(
                 [
-                    f'add_or_update{"_default" if is_default else ""}',
+                    f'add-or-update{"-default" if is_default else ""}',
                     f'"{Setting.key_join(self.parent_key, key)}"',
                     f"{base64.b64encode(json.dumps(value).encode()).decode()}\0",
                 ]
@@ -102,7 +102,7 @@ class Setting:
         client.sendall(
             " ".join(
                 [
-                    f"add_or_update_attr",
+                    f"add-or-update-attr",
                     f'"{Setting.key_join(self.parent_key, key)}"',
                     attr_name,
                     f"{base64.b64encode(json.dumps(value).encode()).decode()}\0",
@@ -161,7 +161,7 @@ class Setting:
     @safe_function(lock)
     def children(self, key: str) -> Result[list[str], str]:
         client.sendall(
-            f'list_children "{Setting.key_join(self.parent_key, key)}"\0'.encode()
+            f'list-children "{Setting.key_join(self.parent_key, key)}"\0'.encode()
         )
         result = json.loads(client.recv(1024 * 1024))
 
@@ -172,7 +172,7 @@ class Setting:
     @safe_function(lock)
     def generate_json(self, key: str = "") -> Result[Union[dict, object], str]:
         client.sendall(
-            f'generate_json "{Setting.key_join(self.parent_key, key)}"\0'.encode()
+            f'generate-json "{Setting.key_join(self.parent_key, key)}"\0'.encode()
         )
         result = json.loads(client.recv(1024 * 1024))
 

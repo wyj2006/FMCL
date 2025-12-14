@@ -20,10 +20,10 @@ tr = QCoreApplication.translate
 class RemoteHandler(logging.Handler):
     def __init__(self, level=0):
         super().__init__(level)
-        self.socket = get_service_connection("logging")
+        self.client = get_service_connection("logging")
 
     def emit(self, record):
-        self.socket.sendall(
+        self.client.sendall(
             " ".join(
                 [
                     record.levelname.lower(),
@@ -33,6 +33,7 @@ class RemoteHandler(logging.Handler):
                 ]
             ).encode()
         )
+        self.client.recv(1024 * 1024)  # 忽略结果
 
 
 def excepthook(*args):

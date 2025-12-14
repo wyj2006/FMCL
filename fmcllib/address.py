@@ -56,11 +56,13 @@ client = get_service_connection("address")
 @safe_function(lock)
 def register_address(name: str, ip: str, port: int):
     client.sendall(f"register {name} {ip} {port}\0".encode())
+    client.recv(1024 * 1024)  # 忽略结果
 
 
 @safe_function(lock)
 def unregister_address(name: str):
     client.sendall(f"unregister {name}\0".encode())
+    client.recv(1024 * 1024)  # 忽略结果
 
 
 @safe_function(lock)

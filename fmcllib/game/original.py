@@ -11,7 +11,13 @@ import requests
 from result import Err, Ok, Result
 
 from fmcllib.filesystem import fileinfo
-from fmcllib.task import create_task, download, modify_task, remove_task
+from fmcllib.task import (
+    ATTR_CURRENT_WORK,
+    create_task,
+    download,
+    modify_task,
+    remove_task,
+)
 
 
 class OriginalVersionInfo(TypedDict):
@@ -82,7 +88,7 @@ def download_original(
 
     json_path = os.path.join(path, name + ".json")
 
-    modify_task(task_id, "current_work", "下载json文件")
+    modify_task(task_id, ATTR_CURRENT_WORK, "下载json文件")
     download(json_url, json_path, task_id)
 
     version_json: VersionJson = json.load(open(json_path, encoding="utf-8"))
@@ -92,7 +98,7 @@ def download_original(
         jar_url = version_json["downloads"]["server"]["url"]
     jar_path = os.path.join(path, name + ".jar")
 
-    modify_task(task_id, "current_work", "下载jar文件")
+    modify_task(task_id, ATTR_CURRENT_WORK, "下载jar文件")
     download(jar_url, jar_path, task_id)
 
     remove_task(task_id)

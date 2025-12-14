@@ -1,6 +1,7 @@
 use super::{error_log_and_write, service_template, write_ok};
 use crate::common::WORK_DIR;
 use base64::prelude::*;
+use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::{info, warn};
 use serde_json::{Map, Value};
@@ -11,6 +12,17 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 lazy_static! {
     pub static ref running_functions: Mutex<HashMap<String, Child>> = Mutex::new(HashMap::new());
+}
+
+#[derive(Parser)]
+struct ServiceCommand {
+    #[command(subcommand)]
+    sub_command: SubCommand,
+}
+
+#[derive(Subcommand)]
+enum SubCommand {
+    Run { command: String },
 }
 
 pub fn run_function(command: &Map<String, Value>) -> Result<u128, String> {
@@ -107,37 +119,46 @@ pub fn function_service() {
         "function".to_string(),
         String::from("127.0.0.1:0"),
         |_stream, _reader, writer, _buf, args| {
-            if args.len() >= 2 && args[0] == "run" {
-                let json_str = match BASE64_STANDARD.decode(args[1].clone()) {
-                    Ok(t) => t,
-                    Err(e) => {
-                        error_log_and_write(writer, e.to_string());
-                        return;
-                    }
-                };
-                let json_str = String::from_utf8_lossy(&json_str);
-                match match serde_json::from_str(&json_str) {
-                    Ok(command) => {
-                        if let Value::Object(command) = command {
-                            match run_function(&command) {
-                                Ok(t) => Ok(t),
-                                Err(e) => Err(e),
+            match ServiceCommand::try_parse_from({
+                let mut t = vec!["function".to_string()];
+                t.extend(args);
+                t
+            }) {
+                Ok(ServiceCommand { sub_command }) => match sub_command {
+                    SubCommand::Run { command } => {
+                        let json_str = match BASE64_STANDARD.decode(command) {
+                            Ok(t) => t,
+                            Err(e) => {
+                                error_log_and_write(writer, e.to_string());
+                                return;
                             }
-                        } else {
-                            Err(format!("{} is not a json object", json_str))
+                        };
+                        let json_str = String::from_utf8_lossy(&json_str);
+                        match match serde_json::from_str(&json_str) {
+                            Ok(command) => {
+                                if let Value::Object(command) = command {
+                                    match run_function(&command) {
+                                        Ok(t) => Ok(t),
+                                        Err(e) => Err(e),
+                                    }
+                                } else {
+                                    Err(format!("{} is not a json object", json_str))
+                                }
+                            }
+                            Err(e) => Err(format!("Cannot parse {}: {}", json_str, e)),
+                        } {
+                            Ok(_) => {
+                                write_ok(writer);
+                                info!("Run {json_str}");
+                            }
+                            Err(e) => {
+                                error_log_and_write(writer, e);
+                            }
                         }
                     }
-                    Err(e) => Err(format!("Cannot parse {}: {}", json_str, e)),
-                } {
-                    Ok(_) => {
-                        write_ok(writer);
-                        info!("Run {json_str}");
-                    }
-                    Err(e) => {
-                        error_log_and_write(writer, e);
-                    }
-                }
-            }
+                },
+                Err(e) => error_log_and_write(writer, e.to_string()),
+            };
         },
         |_stream| {
             remove_stopped_functions();

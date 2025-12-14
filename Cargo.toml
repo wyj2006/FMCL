@@ -7,6 +7,7 @@ edition = "2024"
 anstyle = "1.0.13"
 base64 = "0.22.1"
 chrono = "0.4.41"
+clap = { version = "4.5.53", features = ["derive"] }
 ctrlc = "3.5.0"
 fern = "0.7.1"
 hotwatch = "0.5.0"
