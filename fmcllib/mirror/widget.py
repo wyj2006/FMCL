@@ -147,3 +147,4 @@ class WidgetMirror(Mirror, QWidget):
                     )
                 )
                 self.timer.start(500)
+                # 一般target会发出ShowEvent, 所以这里不需要调用show

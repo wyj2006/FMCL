@@ -1,3 +1,5 @@
+from typing import Union
+
 from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QApplication, QStackedWidget, QWidget
@@ -48,6 +50,8 @@ class Explorer(QStackedWidget):
         QApplication.instance().aboutToQuit.connect(self.on_aboutToQuit)
 
         self.currentChanged.connect(self.on_explorer_currentChanged)
+        # self.widgetAdded.connect(self.on_explorer_widgetAdded)
+        # self.widgetRemoved.connect(self.on_explorer_widgetRemoved)
         # QMetaObject.connectSlotsByName(self)
 
     def event(self, e: QEvent):
@@ -84,7 +88,7 @@ class Explorer(QStackedWidget):
             self.showStart()
 
     @pyqtSlot(int)
-    def on_explorer_currentChanged(self, index):
+    def on_explorer_currentChanged(self, _):
         if self.currentWidget() != self.start:
             self.hideStart()
             self.start_button.setChecked(False)
@@ -116,9 +120,12 @@ class Explorer(QStackedWidget):
                 index, widget, stretch, getattr(Qt.AlignmentFlag, alignment)
             )
 
-    def addToTasbBar(self, window_mirror: WindowMirror):
+    def addWidget(self, window_mirror: Union[WindowMirror, QWidget]):
+        # 使用widgetAdded信号会因为比currentChanged信号后发出产生错误
+        if not isinstance(window_mirror, WindowMirror):
+            return super().addWidget(window_mirror)
         if window_mirror.name in self.task_bar.itemMap:
-            return
+            return super().addWidget(window_mirror)
         item = self.task_bar.addTab(
             window_mirror.name,
             window_mirror.windowTitle(),
@@ -129,16 +136,20 @@ class Explorer(QStackedWidget):
                     self.setCurrentWidget(wm),
                 )
                 if self.currentWidget() != wm
-                else self.removeWidget(wm)
+                else QStackedWidget.removeWidget(self, wm)
             ),
         )
         item.setToolTip(window_mirror.windowTitle())
         item.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         item.customContextMenuRequested.connect(self.showItemRightMenu)
+        return super().addWidget(window_mirror)
 
-    def removeFromTaskBar(self, window_mirror: WindowMirror):
+    def removeWidget(self, window_mirror: Union[WindowMirror, QWidget]):
+        # 使用widgetRemoved信号会因为index不匹配出问题
+        super().removeWidget(window_mirror)
+        if not isinstance(window_mirror, WindowMirror):
+            return
         self.task_bar.removeTabByKey(window_mirror.name)
-        self.removeWidget(window_mirror)
 
     def capture(self):
         if Setting().get("explorer.embed_window").unwrap_or(True) == False:
@@ -148,8 +159,6 @@ class Explorer(QStackedWidget):
             if val["kind"] != "window" or name in self.captured_windows:
                 continue
             window_mirror = self.captured_windows[name] = WindowMirror(name)
-            self.addToTasbBar(window_mirror)
-
             window_mirror.titlebarWidgetsChanged.connect(
                 lambda wm=window_mirror: (
                     self.updateTitleBarWidgets(wm.titlebar_widgets)
@@ -165,13 +174,13 @@ class Explorer(QStackedWidget):
         if isinstance(watched, WindowMirror):
             match event.type():
                 case QEvent.Type.Close:
-                    self.removeFromTaskBar(watched)
+                    self.removeWidget(watched)
                 case QEvent.Type.Show:
-                    self.addToTasbBar(watched)
+                    if self.indexOf(watched) == -1:
+                        self.addWidget(watched)
                 case QEvent.Type.DeferredDelete:
                     watched.removeEventFilter(self)
                     self.captured_windows.pop(watched.name)
-                    self.task_bar.removeTabByKey(watched.name)
                     self.removeWidget(watched)
                 case QEvent.Type.WindowTitleChange:
                     item = self.task_bar.tab(watched.name)
@@ -194,7 +203,7 @@ class Explorer(QStackedWidget):
         detach_action.triggered.connect(
             lambda: (
                 window_mirror.detach(),
-                self.removeFromTaskBar(window_mirror),
+                self.removeWidget(window_mirror),
             )
         )
         menu.addAction(detach_action)
