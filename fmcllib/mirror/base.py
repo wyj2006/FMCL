@@ -73,7 +73,7 @@ class Mirror:
                     self.reginfo: MirrorRegisterInfo = reginfo
                     break
                 case Err(_):
-                    time.sleep(0.1)
+                    time.sleep(0.1 + i / 10)
         else:
             raise Exception(f"{name}不存在")
         self.port = int(self.reginfo["port"])

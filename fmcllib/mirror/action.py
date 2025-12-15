@@ -1,7 +1,7 @@
 from PyQt6.QtGui import QAction
 
 from .base import Mirror, Source
-from .common import handle_command, icon_to_data
+from .common import icon_to_data
 
 
 class ActionSource(Source):
