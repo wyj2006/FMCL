@@ -19,6 +19,7 @@ class WindowSource(WidgetSource):
                 self.socket.write(
                     f"{event_to_command(QEvent(QEvent.Type.WindowTitleChange),self.parent())}\0".encode()
                 )
+            case ("embed",) if not self.embeded:
                 for widget_info in getattr(self.parent(), "titlebar_widgets", []):
                     widget: QWidget = widget_info["widget"]
                     widget_source = WidgetSource(widget)
@@ -132,7 +133,15 @@ class WindowMirror(WidgetMirror):
         if not hasattr(self, "embed_action"):
             return
         self.socket.write(
-            f"titlebar contextmenu action remove {self.action_source.name}\0".encode()
+            " ".join(
+                [
+                    "titlebar",
+                    "contextmenu",
+                    "action",
+                    "remove",
+                    self.action_source.name + "\0",
+                ]
+            ).encode(),
         )
         self.embed_action.deleteLater()
         delattr(self, "embed_action")
@@ -145,7 +154,15 @@ class WindowMirror(WidgetMirror):
         self.embed_action.installEventFilter(self.action_source)
         self.embed_action.triggered.connect(self.embed)
         self.socket.write(
-            f"titlebar contextmenu action add {self.action_source.name}\0".encode()
+            " ".join(
+                [
+                    "titlebar",
+                    "contextmenu",
+                    "action",
+                    "add",
+                    self.action_source.name + "\0",
+                ]
+            ).encode()
         )
 
     def event(self, event):
