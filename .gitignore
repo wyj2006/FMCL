@@ -6,3 +6,4 @@ settings.json
 temp
 .minecraft
 fault_dump.txt
+Cargo.lock
