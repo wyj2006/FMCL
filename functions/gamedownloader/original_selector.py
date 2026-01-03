@@ -1,12 +1,18 @@
 import threading
 
+from game_selector import GameSelector
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QSizePolicy, QSpacerItem, QWidget
+from PyQt6.QtWidgets import QFileDialog, QSizePolicy, QSpacerItem
 from qfluentwidgets import SettingCard
 from ui_original_selector import Ui_OriginalSelector
 
-from fmcllib.game import OriginalVersionInfo, get_original_versions
+from fmcllib.game import (
+    OriginalVersionInfo,
+    download_install_original,
+    download_original,
+    get_original_versions,
+)
 
 
 class VersionInfoViewer(SettingCard):
@@ -33,13 +39,13 @@ class VersionInfoViewer(SettingCard):
         return super().mousePressEvent(a0)
 
 
-class OriginalSelector(QWidget, Ui_OriginalSelector):
-    versionsInfoGot = pyqtSignal()
-    versionSelected = pyqtSignal(str)
+class OriginalSelector(GameSelector, Ui_OriginalSelector):
+    _versionInfosGot = pyqtSignal(list)
 
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.display_name = self.tr("原版")
 
         for i, v in enumerate(("", "release", "snapshot", "old")):
             self.type_filter.setItemData(i, v)
@@ -53,18 +59,19 @@ class OriginalSelector(QWidget, Ui_OriginalSelector):
             self.type_filter.setItemIcon(i + 1, QIcon(v))
 
         self.select_version_info: OriginalVersionInfo = {"id": ""}
-        self.versions_info: list[OriginalVersionInfo] = []
-        self.versionsInfoGot.connect(self.setupViewers)
+
+        self.version_filter.searchSignal.connect(lambda: self.filteViewers())
+        self.version_filter.clearSignal.connect(lambda: self.filteViewers())
+        self.type_filter.currentIndexChanged.connect(lambda: self.filteViewers())
+
+        self._versionInfosGot.connect(self.setupViewers)
         threading.Thread(
-            target=lambda: (
-                setattr(self, "versions_info", get_original_versions()),
-                self.versionsInfoGot.emit(),
-            ),
+            target=lambda: self._versionInfosGot.emit(get_original_versions()),
             daemon=True,
         ).start()
 
-    def setupViewers(self):
-        for version_info in self.versions_info:
+    def setupViewers(self, version_infos):
+        for version_info in version_infos:
             viewer = VersionInfoViewer(version_info)
             viewer.selected.connect(
                 lambda viewer=viewer: (
@@ -72,25 +79,30 @@ class OriginalSelector(QWidget, Ui_OriginalSelector):
                     self.versionSelected.emit(viewer.version_info["id"]),
                 )
             )
-            self.version_filter.searchSignal.connect(
-                lambda _, viewer=viewer: self.filteViewer(viewer)
-            )
-            self.version_filter.clearSignal.connect(
-                lambda viewer=viewer: self.filteViewer(viewer)
-            )
-            self.type_filter.currentIndexChanged.connect(
-                lambda _, viewer=viewer: self.filteViewer(viewer)
-            )
             self.viewer_layout.addWidget(viewer)
-            self.filteViewer(viewer)
         self.viewer_layout.addSpacerItem(
             QSpacerItem(0, 0, vPolicy=QSizePolicy.Policy.Expanding)
         )
+        self.filteViewers()
 
-    def filteViewer(self, viewer: VersionInfoViewer):
+    def filteViewers(self):
         id = self.version_filter.text()
         type = self.type_filter.currentData()
-        if id in viewer.version_info["id"] and type in viewer.version_info["type"]:
-            viewer.show()
-        else:
-            viewer.hide()
+        for i in range(self.viewer_layout.count()):
+            viewer = self.viewer_layout.itemAt(i)
+            if viewer.widget() == None:
+                continue
+            viewer = viewer.widget()
+            if id in viewer.version_info["id"] and type in viewer.version_info["type"]:
+                viewer.show()
+            else:
+                viewer.hide()
+
+    def download(self, name):
+        path = QFileDialog.getExistingDirectory(self)
+        url = self.select_version_info["url"]
+        return lambda: download_original(name, path, url)
+
+    def install(self, name):
+        url = self.select_version_info["url"]
+        return lambda: download_install_original(name, url)

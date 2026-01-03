@@ -31,6 +31,13 @@
       </widget>
      </item>
      <item>
+      <widget class="TransparentTogglePushButton" name="select_fabric">
+       <property name="text">
+        <string>Fabric</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Orientation::Horizontal</enum>
