@@ -100,6 +100,8 @@ class OriginalSelector(GameSelector, Ui_OriginalSelector):
 
     def download(self, name):
         path = QFileDialog.getExistingDirectory(self)
+        if not path:
+            return None
         url = self.select_version_info["url"]
         return lambda: download_original(name, path, url)
 

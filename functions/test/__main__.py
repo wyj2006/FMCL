@@ -9,9 +9,8 @@ import resources as _
 from fmcllib.task import (
     ATTR_CURRENT_WORK,
     ATTR_PROGRESS,
-    create_task,
+    Task,
     modify_task,
-    remove_task,
 )
 
 
@@ -34,21 +33,18 @@ class Test(QWidget):
         self.layout().addWidget(self.test_parent_task_button)
 
     def single_task(self, parent=0, n=10000):
-        task_id = create_task("Single", parent).unwrap()
-        for i in range(n):
-            modify_task(task_id, ATTR_PROGRESS, i / n)
-        remove_task(task_id)
+        with Task("Single", parent) as task_id:
+            for i in range(n):
+                modify_task(task_id, ATTR_PROGRESS, i / n)
 
     def parent_task(self):
-        parent_task = create_task("Parent").unwrap()
-        self.single_task(parent_task, 50000)
-        modify_task(parent_task, ATTR_CURRENT_WORK, "waiting")
-        time.sleep(5)
-        remove_task(parent_task)
+        with Task("Parent") as parent_task:
+            self.single_task(parent_task, 50000)
+            modify_task(parent_task, ATTR_CURRENT_WORK, "waiting")
+            time.sleep(5)
 
 
 app = QApplication(sys.argv)
 test = Test()
 test.show()
-sys.exit(app.exec())
 sys.exit(app.exec())

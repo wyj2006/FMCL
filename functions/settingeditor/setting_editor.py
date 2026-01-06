@@ -169,7 +169,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_profile.clicked.connect(
-            lambda: Function("accountmanager").run()
+            lambda: Function("/functions/accountmanager").run()
         )
 
         self.editinmanager_for_current = PushButton(self.tr("在账号管理器中编辑"))
@@ -184,7 +184,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_current.clicked.connect(
-            lambda: Function("accountmanager").run()
+            lambda: Function("/functions/accountmanager").run()
         )
 
         self.editinmanager_for_servers = PushButton(self.tr("在账号管理器中编辑"))
@@ -199,7 +199,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_servers.clicked.connect(
-            lambda: Function("accountmanager").run()
+            lambda: Function("/functions/accountmanager").run()
         )
 
         self.titlebar_widgets = [

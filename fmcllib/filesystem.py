@@ -65,6 +65,30 @@ def unmount_native(path: str, native_path: str) -> Result[None, str]:
 
 
 @safe_function(lock)
+def mount(target_path, source_path: str) -> Result[None, str]:
+    client.sendall(
+        f"mount {os.path.join(current_dir,target_path)} {os.path.join(current_dir,source_path)}\0".encode()
+    )
+    result = json.loads(client.recv(1024 * 1024))
+
+    if "error_msg" in result:
+        return Err(result["error_msg"])
+    return Ok(None)
+
+
+@safe_function(lock)
+def unmount(target_path, source_path: str) -> Result[None, str]:
+    client.sendall(
+        f"unmount {os.path.join(current_dir,target_path)} {os.path.join(current_dir,source_path)}\0".encode()
+    )
+    result = json.loads(client.recv(1024 * 1024))
+
+    if "error_msg" in result:
+        return Err(result["error_msg"])
+    return Ok(None)
+
+
+@safe_function(lock)
 def makedirs(path: str) -> Result[None, str]:
     client.sendall(f"makedirs {path}\0".encode())
     result = json.loads(client.recv(1024 * 1024))

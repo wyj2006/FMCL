@@ -6,7 +6,7 @@
     "system.startups": {
         "default_value": [
             {
-                "name": "explorer"
+                "path": "/functions/explorer"
             }
         ],
         "display_name": "启动项",

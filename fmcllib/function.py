@@ -47,22 +47,23 @@ class Function:
     def getall_names():
         return listdir("/functions")
 
-    def __init__(self, name):
-        self.name = name
-        self.fileinfo = fileinfo(f"/functions/{name}").unwrap()
+    def __init__(self, path):
+        self.path = path
+        self.name = os.path.basename(path)
+        self.fileinfo = fileinfo(path).unwrap()
         self.native_paths = self.fileinfo["native_paths"]
         if len(self.native_paths) > 1:
             logging.warning(
-                f"发现重名的功能{name}({self.native_paths}), 将默认使用第一个:{self.native_paths[0]}"
+                f"发现重名的功能{self.name}({self.native_paths}), 将默认使用第一个:{self.native_paths[0]}"
             )
 
         self.function_info: FunctionInfo = {
-            "display_name": name,
+            "display_name": self.name,
             "translation_context": "",
             "icon": {"type": "default"},
         }
         readall(
-            f"/functions/{name}/function.json",
+            os.path.join(self.path, "function.json"),
             lambda contents: reduce(
                 lambda x, y: (x.update(json.loads(y)), x)[1],
                 contents,
@@ -74,11 +75,15 @@ class Function:
     def run(self, args: list[str] = None) -> Result[None, str]:
         if args == None:
             args = []
-        command = {"cwd": os.path.abspath(self.native_paths[0])}
-        command |= self.function_info["command"]
 
         client.sendall(
-            f"run {base64.b64encode(json.dumps(command).encode()).decode()}\0".encode()
+            " ".join(
+                [
+                    "run",
+                    f'"{os.path.abspath(self.native_paths[0]).replace("\\","/")}"',
+                    base64.b64encode(json.dumps(args).encode()).decode() + "\0",
+                ]
+            ).encode()
         )
         result = json.loads(client.recv(1024 * 1024))
 

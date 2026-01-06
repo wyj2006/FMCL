@@ -1,5 +1,6 @@
 use std::{fs, path::Path};
 
+#[derive(Debug)]
 pub struct FCB {
     pub name: String,
     pub path: String,
@@ -27,11 +28,11 @@ impl FCB {
         for native_path in &self.native_paths {
             for result_entry in match fs::read_dir(native_path) {
                 Ok(t) => t,
-                Err(e) => return Err(e.to_string()),
+                Err(_) => continue,
             } {
                 let entry = match result_entry {
                     Ok(t) => t,
-                    Err(e) => return Err(e.to_string()),
+                    Err(_) => continue,
                 };
                 if entry.file_name() == name {
                     opt_path = Some(String::from(entry.path().to_str().unwrap()));

@@ -1,4 +1,8 @@
 {
+    "type": "executable",
     "display_name": "系统初始化",
-    "translation_context": "Init"
+    "translation_context": "Init",
+    "command": {
+        "template": "python"
+    }
 }

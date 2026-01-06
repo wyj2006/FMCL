@@ -1,10 +1,10 @@
 {
     "type": "executable",
-    "display_name": "任务管理器",
-    "translation_context": "TaskManager",
+    "display_name": "游戏监视器",
+    "translation_context": "GameMonitor",
     "icon": {
         "type": "QtAwesome",
-        "value": "ei.tasks"
+        "value": "mdi6.rocket-launch-outline"
     },
     "command": {
         "template": "python"

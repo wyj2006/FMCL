@@ -200,3 +200,18 @@ def refresh_account(profile: ProfileDict, setting=None) -> Result[None, str]:
                 )
             )
     return Ok(None)
+
+
+def get_current_user(setting=None) -> Result[ProfileDict, str]:
+    if setting == None:
+        setting = Setting()
+    match setting.get("account.current"):
+        case Ok(t):
+            index = t
+        case Err(e):
+            return Err(e)
+    match setting.get("account.profiles"):
+        case Ok(t):
+            return Ok(t[index])
+        case Err(e):
+            return Err(e)

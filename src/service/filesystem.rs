@@ -5,12 +5,14 @@ use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::warn;
 use serde_json::{self, json};
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{Mutex, RwLock};
 use std::vec;
 
+//所有的路径都是绝对路径
 lazy_static! {
     pub static ref fcb_root: Mutex<FCB> = Mutex::new(FCB {
         name: String::from("root"),
@@ -18,6 +20,7 @@ lazy_static! {
         native_paths: vec![WORK_DIR.to_string()],
         children: vec![],
     });
+    pub static ref mount_table: RwLock<HashMap<String, Vec<String>>> = RwLock::new(HashMap::new());
 }
 
 #[derive(Parser)]
@@ -28,17 +31,38 @@ struct ServiceCommand {
 
 #[derive(Subcommand)]
 enum SubCommand {
-    Fileinfo { path: String },
-    Listdir { path: String },
-    MountNative { path: String, native_path: String },
-    UnmountNative { path: String, native_path: String },
-    Makedirs { path: String },
+    Fileinfo {
+        path: String,
+    },
+    Listdir {
+        path: String,
+    },
+    MountNative {
+        path: String,
+        native_path: String,
+    },
+    UnmountNative {
+        path: String,
+        native_path: String,
+    },
+    Makedirs {
+        path: String,
+    },
+    Mount {
+        target_path: String,
+        source_path: String,
+    },
+    Unmount {
+        target_path: String,
+        source_path: String,
+    },
 }
 
-pub fn get_fcb<'a, 'b>(parent: &'a mut FCB, path: &'b String) -> Result<&'a mut FCB, String> {
-    let mut cur = parent;
+pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b String) -> Result<&'a mut FCB, String> {
+    //所有的FCB都引用于fcb_root, 而fcb_root本身就是带锁的
+    let mut cur = unsafe { &mut *(root as *mut FCB) };
     let path = path.replace("\\", "/");
-    for name in path.split("/") {
+    'outer: for name in path.split("/") {
         if name == "" {
             continue;
         }
@@ -47,6 +71,24 @@ pub fn get_fcb<'a, 'b>(parent: &'a mut FCB, path: &'b String) -> Result<&'a mut 
                 cur = cur.find(name).unwrap();
             }
             Err(e) => {
+                if let Some(source_paths) = mount_table.read().unwrap().get(&cur.path) {
+                    for source_path in source_paths {
+                        match get_fcb(
+                            unsafe { &mut *(root as *mut FCB) },
+                            &Path::new(source_path)
+                                .join(name)
+                                .to_str()
+                                .unwrap()
+                                .to_string(),
+                        ) {
+                            Ok(t) => {
+                                cur = t;
+                                continue 'outer;
+                            }
+                            Err(_) => continue,
+                        }
+                    }
+                }
                 return Err(e);
             }
         }
@@ -55,19 +97,42 @@ pub fn get_fcb<'a, 'b>(parent: &'a mut FCB, path: &'b String) -> Result<&'a mut 
 }
 
 pub fn get_or_create_fcb<'a, 'b>(
-    parent: &'a mut FCB,
+    root: &'a mut FCB,
     path: &'b String,
 ) -> Result<&'a mut FCB, String> {
-    let mut cur = parent;
+    //所有的FCB都引用于fcb_root, 而fcb_root本身就是带锁的
+    let mut cur: &mut FCB = unsafe { &mut *(root as *mut FCB) };
     let path = path.replace("\\", "/");
-    for name in path.split("/") {
+    'outer: for name in path.split("/") {
         if name == "" {
             continue;
         }
         if let Err(_) = cur.load(name) {
-            if let Err(e) = cur.create(FCB {
+            if let Some(source_paths) = mount_table.read().unwrap().get(&cur.path) {
+                for source_path in source_paths {
+                    match get_or_create_fcb(
+                        unsafe { &mut *(root as *mut FCB) },
+                        &Path::new(source_path)
+                            .join(name)
+                            .to_str()
+                            .unwrap()
+                            .to_string(),
+                    ) {
+                        Ok(t) => {
+                            cur = t;
+                            continue 'outer;
+                        }
+                        Err(_) => continue,
+                    }
+                }
+            }
+            cur.create(FCB {
                 name: name.to_string(),
-                path: format!("{}/{name}", cur.path),
+                path: Path::new(&cur.path)
+                    .join(name)
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
                 native_paths: {
                     let mut native_paths = Vec::new();
                     for native_path in &cur.native_paths {
@@ -82,17 +147,15 @@ pub fn get_or_create_fcb<'a, 'b>(
                     native_paths
                 },
                 children: Vec::new(),
-            }) {
-                return Err(e.to_string());
-            }
+            })?;
         }
         cur = cur.find(name).unwrap();
     }
     Ok(cur)
 }
 
-pub fn listdir(parent: &mut FCB, path: &String) -> Result<Vec<String>, String> {
-    match get_fcb(parent, path) {
+pub fn listdir(root: &mut FCB, path: &String) -> Result<Vec<String>, String> {
+    match get_fcb(root, path) {
         Ok(t) => {
             let mut names: Vec<String> = vec![];
             //实际的子项
@@ -120,14 +183,20 @@ pub fn listdir(parent: &mut FCB, path: &String) -> Result<Vec<String>, String> {
                     names.push(name);
                 }
             }
+            //挂载在上面的子项
+            if let Some(source_paths) = mount_table.read().unwrap().get(&t.path) {
+                for source_path in source_paths {
+                    names.extend(listdir(root, source_path)?);
+                }
+            }
             Ok(names)
         }
         Err(e) => Err(e),
     }
 }
 
-pub fn mount_native(parent: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
-    match get_or_create_fcb(parent, path) {
+pub fn mount_native(root: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
+    match get_or_create_fcb(root, path) {
         Ok(t) => {
             if !t.native_paths.contains(native_path) {
                 t.native_paths.push(native_path.clone());
@@ -138,8 +207,8 @@ pub fn mount_native(parent: &mut FCB, path: &String, native_path: &String) -> Re
     }
 }
 
-pub fn unmount_native(parent: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
-    match get_or_create_fcb(parent, path) {
+pub fn unmount_native(root: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
+    match get_or_create_fcb(root, path) {
         Ok(t) => {
             if let Some(index) = t.native_paths.iter().position(|x| x == native_path) {
                 t.native_paths.remove(index);
@@ -150,8 +219,30 @@ pub fn unmount_native(parent: &mut FCB, path: &String, native_path: &String) -> 
     }
 }
 
-pub fn makedirs(parent: &mut FCB, path: &String) -> Result<(), String> {
-    match get_or_create_fcb(parent, path) {
+pub fn mount(root: &mut FCB, target_path: &String, source_path: &String) -> Result<(), String> {
+    let fcb = get_or_create_fcb(root, target_path)?;
+    let mut mt = mount_table.write().unwrap();
+    if let Some(t) = mt.get_mut(&fcb.path) {
+        t.push(source_path.to_string());
+    } else {
+        mt.insert(fcb.path.clone(), vec![source_path.to_string()]);
+    }
+    Ok(())
+}
+
+pub fn unmount(root: &mut FCB, target_path: &String, source_path: &String) -> Result<(), String> {
+    let fcb = get_or_create_fcb(root, target_path)?;
+    let mut mt = mount_table.write().unwrap();
+    if let Some(t) = mt.get_mut(&fcb.path) {
+        if let Some(i) = t.iter().position(|x| x == source_path) {
+            t.remove(i);
+        }
+    }
+    Ok(())
+}
+
+pub fn makedirs(root: &mut FCB, path: &String) -> Result<(), String> {
+    match get_or_create_fcb(root, path) {
         Ok(t) => {
             if t.native_paths.len() > 1 {
                 warn!(
@@ -246,6 +337,20 @@ pub fn filesystem_service() {
                         Err(e) => {
                             error_log_and_write(writer, e);
                         }
+                    },
+                    SubCommand::Mount {
+                        target_path,
+                        source_path,
+                    } => match mount(parent, &target_path, &source_path) {
+                        Ok(_) => write_ok(writer),
+                        Err(e) => error_log_and_write(writer, e),
+                    },
+                    SubCommand::Unmount {
+                        target_path,
+                        source_path,
+                    } => match unmount(parent, &target_path, &source_path) {
+                        Ok(_) => write_ok(writer),
+                        Err(e) => error_log_and_write(writer, e),
                     },
                 },
                 Err(e) => error_log_and_write(writer, e.to_string()),

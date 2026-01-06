@@ -1,4 +1,5 @@
 {
+    "type": "executable",
     "display_name": "测试",
     "translation_context": "Test",
     "command": {

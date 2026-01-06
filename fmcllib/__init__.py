@@ -15,6 +15,7 @@ from PyQt6.QtWidgets import QErrorMessage, QWidget
 from .address import get_service_connection
 
 tr = QCoreApplication.translate
+VERSION = "4.0.0"
 
 
 class RemoteHandler(logging.Handler):
@@ -23,13 +24,16 @@ class RemoteHandler(logging.Handler):
         self.client = get_service_connection("logging")
 
     def emit(self, record):
+        try:
+            msg = record.msg % record.args
+        except:
+            msg = record.msg
         self.client.sendall(
             " ".join(
                 [
                     record.levelname.lower(),
                     f'"{record.threadName}"',
-                    base64.b64encode((record.msg % record.args).encode()).decode()
-                    + "\0",
+                    base64.b64encode(msg.encode()).decode() + "\0",
                 ]
             ).encode()
         )

@@ -12,7 +12,7 @@ use anstyle::{AnsiColor, Color, Effects, RgbColor, Style};
 use chrono::Local;
 use hotwatch::{EventKind, Hotwatch};
 use log::{Level, error, info};
-use serde_json::json;
+use serde_json::{Value, json};
 use service::address::remove_address_disconnected;
 use service::filesystem::{fcb_root, get_fcb};
 use service::function::{remove_stopped_functions, run_function, running_functions};
@@ -23,7 +23,7 @@ use service::{
     task_service,
 };
 use std::collections::hash_map::DefaultHasher;
-use std::fs::OpenOptions;
+use std::fs::{self, OpenOptions};
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::process;
@@ -90,6 +90,71 @@ fn update_minecraft_mount() {
         }
         Err(e) => {
             error!("Cannot update /.minecraft: {e}");
+        }
+    }
+}
+
+///更新所有游戏下的function.json
+pub fn update_game_function() {
+    let game_dirs = match get_settingitem(
+        &mut setting_root.lock().unwrap(),
+        &SettingItem::key_join(&vec![
+            &("/settings_json".to_string()),
+            &("game.dirs".to_string()),
+        ]),
+    ) {
+        Ok(t) => {
+            if t.value.is_array() {
+                t.value.as_array().unwrap().clone()
+            } else {
+                vec![json!(".minecraft")]
+            }
+        }
+        Err(_) => vec![json!(".minecraft")],
+    };
+    for game_dir in game_dirs {
+        let Value::String(game_dir) = game_dir else {
+            continue;
+        };
+        let versions_path = Path::new(&game_dir).join("versions");
+        for game_path in match fs::read_dir(&versions_path) {
+            Ok(t) => t,
+            Err(e) => {
+                error!("{e}");
+                continue;
+            }
+        } {
+            let Ok(game_path) = game_path else {
+                continue;
+            };
+            let function_path = game_path.path().join("function.json");
+            let game_path = match path::absolute(game_path.path()) {
+                Ok(t) => t,
+                Err(e) => {
+                    error!("{e}");
+                    continue;
+                }
+            };
+            if let Err(e) = fs::write(
+                function_path,
+                json!({
+                    "type":"game",
+                    "display_name":game_path.file_name().unwrap().to_str().unwrap(),//TODO 根据游戏设置设置
+                    "translation_context":"Game",
+                    "icon":{
+                        "type":"QIcon",
+                        "value":":/image/grass@2x.png" //TODO 根据游戏设置设置
+                    },
+                    "command":{
+                        "template":"function",
+                        "program":"/functions/gamemonitor",
+                        "args":["--game-path",game_path]
+                    }
+                })
+                .to_string(),
+            ) {
+                error!("{e}");
+            }
         }
     }
 }
@@ -194,14 +259,7 @@ fn main() {
         &("/functions/init".to_string()),
     ) {
         Ok(t) => {
-            if let Err(e) = run_function(
-                json!({
-                    "template":"python",
-                    "cwd":t.native_paths[0],
-                })
-                .as_object()
-                .unwrap(),
-            ) {
+            if let Err(e) = run_function(&t.native_paths[0], vec![]) {
                 error!("Connot run init: {e}");
             }
         }
@@ -230,6 +288,7 @@ fn main() {
                     };
                     //在/settings.json更改后更新/.minecraft对应的本地路径
                     update_minecraft_mount();
+                    update_game_function();
                 },
             ) {
                 error!("Cannot watch /settings.json: {e}");
@@ -243,6 +302,7 @@ fn main() {
         }
     };
     update_minecraft_mount();
+    update_game_function();
 
     loop {
         thread::sleep(Duration::from_secs(1));

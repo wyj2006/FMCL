@@ -144,6 +144,8 @@ class FabricSelector(GameSelector, Ui_FabricSelector):
             )
             return
         path = QFileDialog.getExistingDirectory(self)
+        if not path:
+            return None
         url = self.selected_viewer.installer["url"]
         return lambda: download_fabric_installer(name, path, url)
 

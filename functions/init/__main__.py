@@ -3,7 +3,7 @@ import traceback
 
 from result import is_ok
 
-from fmcllib.filesystem import fileinfo, listdir, mount_native
+from fmcllib.filesystem import fileinfo, listdir, mount, mount_native
 from fmcllib.function import Function
 from fmcllib.setting import Setting
 
@@ -16,9 +16,12 @@ for name in listdir("/functions").unwrap_or([]):
         for native_path in result.ok_value["native_paths"]:
             mount_native("/defaultsettings.json", native_path)
 
+mount("/start", "/functions")
+mount("/desktop", "/.minecraft/versions")
+
 for startup in Setting().get("system.startups").unwrap_or([]):
-    function_name = startup["name"]
+    path = startup["path"]
     try:
-        Function(startup["name"]).run(*startup.get("args", [])).unwrap()
+        Function(path).run(*startup.get("args", [])).unwrap()
     except:
-        logging.error(f"无法运行功能'{function_name}':\n{traceback.format_exc()}")
+        logging.error(f"无法运行功能'{path}':\n{traceback.format_exc()}")

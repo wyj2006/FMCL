@@ -1,4 +1,5 @@
 {
+    "type": "executable",
     "display_name": "网址管理器",
     "translation_context": "AddressManager",
     "icon": {

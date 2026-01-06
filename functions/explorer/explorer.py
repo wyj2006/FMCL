@@ -1,5 +1,6 @@
 from typing import Union
 
+from desktop import Desktop
 from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QApplication, QStackedWidget, QWidget
@@ -20,6 +21,8 @@ class Explorer(QStackedWidget):
         self.resize(1000, 618)
 
         self.start = Start()
+        self.desktop = Desktop()
+        self.addWidget(self.desktop)
 
         self.start_button = TransparentToolButton(QApplication.instance().windowIcon())
         self.start_button.setCheckable(True)
@@ -100,9 +103,9 @@ class Explorer(QStackedWidget):
             name = window_mirror.name
             item = self.task_bar.tab(name)
             item.setSelected(True)
-            self.updateTitleBarWidgets(window_mirror.titlebar_widgets)
-        else:
-            self.updateTitleBarWidgets([])
+        self.updateTitleBarWidgets(
+            getattr(self.currentWidget(), "titlebar_widgets", list())
+        )
 
     def updateTitleBarWidgets(self, titlebar_widgets: list):
         window = self.window()

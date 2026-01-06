@@ -1,4 +1,5 @@
 {
+    "type": "executable",
     "display_name": "文件管理器",
     "translation_context": "FileManager",
     "icon": {

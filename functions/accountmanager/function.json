@@ -1,4 +1,5 @@
 {
+    "type": "executable",
     "display_name": "账号管理",
     "translation_context": "AccountManager",
     "icon": {

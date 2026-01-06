@@ -73,7 +73,7 @@ def event_to_command(event: QEvent, source: QObject) -> str:
         case QEvent.Type.WinIdChange:
             return f"change_winid {int(source.winId())}"
         case QEvent.Type.WindowTitleChange:
-            return f"change_windowtitle {source.windowTitle()}"
+            return f"change_windowtitle {repr(source.windowTitle())}"
         case QEvent.Type.WindowIconChange:
             return f"change_windowicon {icon_to_data(source.windowIcon())}"
         case QEvent.Type.Resize:
@@ -96,8 +96,8 @@ def handle_command(target: QObject, command: str) -> tuple[str]:
     match args:
         case ("nop",):
             pass
-        case ("change_windowtitle", title):
-            target.setWindowTitle(title)
+        case ("change_windowtitle", *_):
+            target.setWindowTitle(eval(command[len(args[0]) :]))
         case ("change_windowicon", *_):
             data = eval(command[len(args[0]) :])
             icon_image = QImage.fromData(data)

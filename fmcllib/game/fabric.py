@@ -8,13 +8,7 @@ import requests
 from result import Err, Ok, Result
 
 from fmcllib.filesystem import fileinfo
-from fmcllib.task import (
-    ATTR_CURRENT_WORK,
-    create_task,
-    download,
-    modify_task,
-    remove_task,
-)
+from fmcllib.task import ATTR_CURRENT_WORK, Task, download, modify_task
 
 
 class FabricLoader(TypedDict):
@@ -94,40 +88,37 @@ def install_fabric(
             game_dir = t["native_paths"][-1]
         case Err(e):
             return Err(e)
-    task_id = create_task(f"安装Fabric(名称:{name})").unwrap_or(0)
+    with Task(f"安装Fabric(名称:{name})") as task_id:
+        modify_task(task_id, ATTR_CURRENT_WORK, "安装库")
 
-    modify_task(task_id, ATTR_CURRENT_WORK, "安装库")
+        r = requests.get(
+            f"https://meta.fabricmc.net/v2/versions/loader/{original_version}/{loader_version}"
+        )
+        fabric_info: FabricInfo = json.loads(r.content)
 
-    r = requests.get(
-        f"https://meta.fabricmc.net/v2/versions/loader/{original_version}/{loader_version}"
-    )
-    fabric_info: FabricInfo = json.loads(r.content)
+        install_fabric_libraries(game_dir, fabric_info, task_id)
 
-    install_fabric_libraries(game_dir, fabric_info, task_id)
+        modify_task(task_id, ATTR_CURRENT_WORK, "调整json文件")
 
-    modify_task(task_id, ATTR_CURRENT_WORK, "调整json文件")
+        # 原版的json文件
+        version_json_path = os.path.join(game_dir, "versions", name, name + ".json")
+        while not os.path.exists(version_json_path):
+            time.sleep(1)
+        r = requests.get(
+            f"https://meta.fabricmc.net/v2/versions/loader/{original_version}/{loader_version}/profile/json"
+        )
+        profile = json.loads(r.content)
+        if name == profile["inheritsFrom"]:
+            profile["inheritsFrom"] = f"{profile['inheritsFrom']}_"
 
-    # 原版的json文件
-    version_json_path = os.path.join(game_dir, "versions", name, name + ".json")
-    while not os.path.exists(version_json_path):
-        time.sleep(1)
-    r = requests.get(
-        f"https://meta.fabricmc.net/v2/versions/loader/{original_version}/{loader_version}/profile/json"
-    )
-    profile = json.loads(r.content)
-    if name == profile["inheritsFrom"]:
-        profile["inheritsFrom"] = f"{profile['inheritsFrom']}_"
+        inherit_path = os.path.join(
+            game_dir, "versions", name, profile["inheritsFrom"] + ".json"
+        )
+        if os.path.exists(inherit_path):
+            os.remove(inherit_path)
+        os.rename(version_json_path, inherit_path)
 
-    inherit_path = os.path.join(
-        game_dir, "versions", name, profile["inheritsFrom"] + ".json"
-    )
-    if os.path.exists(inherit_path):
-        os.remove(inherit_path)
-    os.rename(version_json_path, inherit_path)
-
-    open(version_json_path, mode="w", encoding="utf-8").write(json.dumps(profile))
-
-    remove_task(task_id)
+        open(version_json_path, mode="w", encoding="utf-8").write(json.dumps(profile))
     return Ok(None)
 
 
@@ -137,6 +128,7 @@ def install_fabric_libraries(game_dir: str, fabric_info: FabricInfo, parent_task
     for library in fabric_info["launcherMeta"]["libraries"]["common"]:
         lib_name = library["name"]
         package, name, version = lib_name.split(":")
+        package = package.replace(".", "/")
         path = f"{package}/{name}/{version}/{name}-{version}.jar"
         t.append(
             threading.Thread(

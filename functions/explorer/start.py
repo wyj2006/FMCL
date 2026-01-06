@@ -7,6 +7,7 @@ from qfluentwidgets import FluentIcon, ListWidget, NavigationItemPosition
 from ui_start import Ui_Start
 
 from fmcllib import show_qerrormessage
+from fmcllib.filesystem import listdir
 from fmcllib.function import Function
 
 
@@ -16,9 +17,9 @@ class FunctionList(ListWidget):
         self.setObjectName("function_list")
         self.setResizeMode(QListView.ResizeMode.Adjust)
 
-        for name in Function.getall_names().unwrap_or([]):
+        for name in listdir("/start").unwrap_or([]):
             try:
-                function = Function(name)
+                function = Function(f"/start/{name}")
                 item = QListWidgetItem(function.icon, function.display_name)
                 item.setToolTip(name)
                 self.addItem(item)
@@ -30,12 +31,13 @@ class FunctionList(ListWidget):
 
     @pyqtSlot(QListWidgetItem)
     def on_function_list_itemClicked(self, item: QListWidgetItem):
-        function_name = item.toolTip()
+        name = item.toolTip()
+        function = Function(f"/start/{name}")
         try:
-            Function(function_name).run().unwrap()
+            function.run().unwrap()
         except:
             show_qerrormessage(
-                self.tr("运行{function_name}出错").format(function_name=function_name),
+                self.tr("运行{path}出错").format(path=function.path),
                 traceback.format_exc(),
                 self,
             )

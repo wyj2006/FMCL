@@ -11,13 +11,7 @@ import requests
 from result import Err, Ok, Result
 
 from fmcllib.filesystem import fileinfo
-from fmcllib.task import (
-    ATTR_CURRENT_WORK,
-    create_task,
-    download,
-    modify_task,
-    remove_task,
-)
+from fmcllib.task import ATTR_CURRENT_WORK, Task, download, modify_task
 
 
 class OriginalVersionInfo(TypedDict):
@@ -33,7 +27,7 @@ class Rule(TypedDict):
     os: dict[Literal["name", "version", "arch"], str]
 
 
-class OriginalLibrary(TypedDict):
+class OriginalLibrary(TypedDict, total=False):
     """VersionJson['libraries']每个元素的内容"""
 
     name: str
@@ -53,11 +47,16 @@ class LoggingClient(TypedDict):
     type: str
 
 
-class VersionJson(TypedDict):
+class ArgumentDict(TypedDict):
+    game: list[str | dict[Literal["rules", "value"], Rule]]
+    jvm: list[str | dict[Literal["rules", "value"], Rule]]
+
+
+class VersionJson(TypedDict, total=False):
     """版本json文件"""
 
-    arguments: dict
-    minecraftArguments: dict  # 1.13以前
+    arguments: ArgumentDict
+    minecraftArguments: str  # 1.13以前
     assetIndex: dict[Literal["id", "size", "totalSize", "url"], str | int]
     assets: str
     downloads: dict[
@@ -68,6 +67,8 @@ class VersionJson(TypedDict):
     mainClass: str
     time: str
     type: Literal["release", "snapshot", "old_beta", "old_alpha"]
+    id: str
+    inheritsFrom: str
 
 
 class AssetIndex(TypedDict):
@@ -84,99 +85,97 @@ def get_original_versions() -> list[OriginalVersionInfo]:
 def download_original(
     name, path, json_url, is_client=True
 ) -> dict[Literal["json_path", "version_json", "jar_path"], str]:
-    task_id = create_task(f"下载原版(名称:{name})").unwrap_or(0)
+    with Task(f"下载原版(名称:{name})") as task_id:
+        json_path = os.path.join(path, name + ".json")
 
-    json_path = os.path.join(path, name + ".json")
+        modify_task(task_id, ATTR_CURRENT_WORK, "下载json文件")
+        download(json_url, json_path, task_id)
 
-    modify_task(task_id, ATTR_CURRENT_WORK, "下载json文件")
-    download(json_url, json_path, task_id)
+        version_json: VersionJson = json.load(open(json_path, encoding="utf-8"))
+        if is_client:
+            jar_url = version_json["downloads"]["client"]["url"]
+        else:
+            jar_url = version_json["downloads"]["server"]["url"]
+        jar_path = os.path.join(path, name + ".jar")
 
-    version_json: VersionJson = json.load(open(json_path, encoding="utf-8"))
-    if is_client:
-        jar_url = version_json["downloads"]["client"]["url"]
-    else:
-        jar_url = version_json["downloads"]["server"]["url"]
-    jar_path = os.path.join(path, name + ".jar")
-
-    modify_task(task_id, ATTR_CURRENT_WORK, "下载jar文件")
-    download(jar_url, jar_path, task_id)
-
-    remove_task(task_id)
-
+        modify_task(task_id, ATTR_CURRENT_WORK, "下载jar文件")
+        download(jar_url, jar_path, task_id)
     return {"json_path": json_path, "version_json": version_json, "jar_path": jar_path}
 
 
-def install_original(game_dir: str, version_json: VersionJson):
-    task_id = create_task("安装原版").unwrap_or(0)
+def install_original(game_dir: str, name: str, json_path: str):
+    version_json = json.load(open(json_path, encoding="utf-8"))
+    version_json["id"] = name
+    json.dump(version_json, open(json_path, mode="w", encoding="utf-8"), indent=4)
 
-    t: list[threading.Thread] = []
-
-    t.append(
-        threading.Thread(
-            target=install_libraries, args=(game_dir, version_json, task_id)
+    with Task("安装原版") as task_id:
+        t: list[threading.Thread] = []
+        t.append(
+            threading.Thread(
+                target=install_libraries, args=(game_dir, version_json, task_id)
+            )
         )
-    )
+        t.append(
+            threading.Thread(
+                target=install_assets, args=(game_dir, version_json, task_id)
+            )
+        )
 
-    t.append(
-        threading.Thread(target=install_assets, args=(game_dir, version_json, task_id))
-    )
-
-    for i in t:
-        i.start()
-    for i in t:
-        i.join()
-
-    remove_task(task_id)
+        for i in t:
+            i.start()
+        for i in t:
+            i.join()
 
 
 def install_libraries(game_dir: str, version_json: VersionJson, parent_task_id=0):
-    task_id = create_task("安装库", parent_task_id).unwrap_or(0)
+    with Task("安装库", parent_task_id) as task_id:
+        t: list[threading.Thread] = []
 
-    t: list[threading.Thread] = []
-
-    for library in version_json["libraries"]:
-        if "rules" in library and not parse_rule(library["rules"]):
-            continue
-        if "artifact" in library["downloads"]:
-            t.append(
-                threading.Thread(
-                    target=download,
-                    args=(
-                        library["downloads"]["artifact"]["url"],
-                        os.path.join(
-                            game_dir,
-                            "libraries",
-                            library["downloads"]["artifact"]["path"],
+        for library in version_json["libraries"]:
+            if "rules" in library and not parse_rules(library["rules"]):
+                continue
+            if "artifact" in library["downloads"]:
+                t.append(
+                    threading.Thread(
+                        target=download,
+                        args=(
+                            library["downloads"]["artifact"]["url"],
+                            os.path.join(
+                                game_dir,
+                                "libraries",
+                                library["downloads"]["artifact"]["path"],
+                            ),
                         ),
-                    ),
-                    kwargs={"parent_task_id": task_id},
+                        kwargs={"parent_task_id": task_id},
+                    )
                 )
-            )
-        if "classifiers" in library["downloads"]:
-            natives_key = library["natives"][
-                {"win32": "windows", "linux": "linux", "darwin": "osx"}[sys.platform]
-            ]
-            t.append(
-                threading.Thread(
-                    target=download,
-                    args=(
-                        library["downloads"]["classifiers"][natives_key]["url"],
-                        os.path.join(
-                            game_dir,
-                            "libraries",
-                            library["downloads"]["classifiers"][natives_key]["path"],
+            if "classifiers" in library["downloads"]:
+                natives_key = library["natives"][
+                    {"win32": "windows", "linux": "linux", "darwin": "osx"}[
+                        sys.platform
+                    ]
+                ]
+                t.append(
+                    threading.Thread(
+                        target=download,
+                        args=(
+                            library["downloads"]["classifiers"][natives_key]["url"],
+                            os.path.join(
+                                game_dir,
+                                "libraries",
+                                library["downloads"]["classifiers"][natives_key][
+                                    "path"
+                                ],
+                            ),
                         ),
-                    ),
-                    kwargs={"parent_task_id": task_id},
+                        kwargs={"parent_task_id": task_id},
+                    )
                 )
-            )
 
-    for i in t:
-        i.start()
-    for i in t:
-        i.join()
-
-    remove_task(task_id)
+        for i in t:
+            i.start()
+        for i in t:
+            i.join()
 
 
 def download_asset_index(
@@ -191,33 +190,32 @@ def download_asset_index(
 
 def install_assets(game_dir: str, version_json: VersionJson, parent_task_id=0):
     """会下载不存在或者被更改的资源文件"""
-    task_id = create_task("安装资源", parent_task_id).unwrap_or(0)
+    with Task("安装资源", parent_task_id) as task_id:
+        t: list[threading.Thread] = []
 
-    t: list[threading.Thread] = []
-
-    asset_index = download_asset_index(game_dir, version_json, task_id)
-    for path, info in asset_index["objects"].items():
-        asset_hash = info["hash"]
-        path = os.path.join(game_dir, "assets", "objects", asset_hash[:2], asset_hash)
-        url = f"https://resources.download.minecraft.net/{asset_hash[:2]}/{asset_hash}"
-        if not os.path.exists(path):  # 路径不存在说明这个资源要么没下载要么被更改
-            t.append(
-                threading.Thread(
-                    target=download,
-                    args=(url, path),
-                    kwargs={"parent_task_id": task_id},
-                )
+        asset_index = download_asset_index(game_dir, version_json, task_id)
+        for path, info in asset_index["objects"].items():
+            asset_hash = info["hash"]
+            path = os.path.join(
+                game_dir, "assets", "objects", asset_hash[:2], asset_hash
             )
+            url = f"https://resources.download.minecraft.net/{asset_hash[:2]}/{asset_hash}"
+            if not os.path.exists(path):  # 路径不存在说明这个资源要么没下载要么被更改
+                t.append(
+                    threading.Thread(
+                        target=download,
+                        args=(url, path),
+                        kwargs={"parent_task_id": task_id},
+                    )
+                )
 
-    for i in t:
-        i.start()
-    for i in t:
-        i.join()
-
-    remove_task(task_id)
+        for i in t:
+            i.start()
+        for i in t:
+            i.join()
 
 
-def parse_rule(rules: list[Rule]) -> bool:
+def parse_rules(rules: list[Rule]) -> bool:
     os_dict = {
         "name": {"Windows": "windows", "Linux": "linux", "Darwin": "osx"}[
             platform.system()
@@ -227,10 +225,13 @@ def parse_rule(rules: list[Rule]) -> bool:
     }
     for rule in rules:
         mismatch = False
-        for key, val in rule["os"].items():
+        for key, val in rule.get("os", dict()).items():
             if key in os_dict and val != os_dict[key]:
                 mismatch = True
                 break
+        # TODO features
+        for key, val in rule.get("features", dict()).items():
+            return False
         if rule["action"] == "allow" and mismatch:
             return False
         if rule["action"] == "disallow" and not mismatch:
@@ -244,9 +245,10 @@ def download_install_original(name, json_url) -> Result[None, str]:
             game_dir = t["native_paths"][-1]
             install_original(
                 game_dir,
+                name,
                 download_original(
                     name, os.path.join(game_dir, "versions", name), json_url
-                )["version_json"],
+                )["json_path"],
             )
             return Ok(None)
         case Err(e):

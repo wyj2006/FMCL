@@ -15,6 +15,19 @@ ATTR_PROGRESS = "progress"
 ATTR_CURRENT_WORK = "current-work"
 
 
+class Task:
+    def __init__(self, name, parent_task_id=0):
+        self.name = name
+        self.parent_task_id = parent_task_id
+
+    def __enter__(self):
+        self.task_id = create_task(self.name, self.parent_task_id).unwrap_or(0)
+        return self.task_id
+
+    def __exit__(self, *_):
+        remove_task(self.task_id)
+
+
 class TaskDict(TypedDict):
     id: str
     name: str

@@ -43,7 +43,7 @@ def singleton[T](cls: type[T]) -> type[T]:
 def safe_function(lock: threading.Lock):
     """使用提供的lock将整个函数锁住"""
 
-    def wrapper[T](func: Callable[..., T]):
+    def wrapper[T, **P](func: Callable[P, T]):
         @wraps(func)
         def inner(*args, **kwargs) -> T:
             lock.acquire()

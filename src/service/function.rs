@@ -1,11 +1,14 @@
 use super::{error_log_and_write, service_template, write_ok};
 use crate::common::WORK_DIR;
+use crate::service::filesystem::{fcb_root, get_fcb};
 use base64::prelude::*;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::{info, warn};
-use serde_json::{Map, Value};
+use serde_json::Value;
 use std::collections::HashMap;
+use std::fs;
+use std::path::Path;
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -22,42 +25,87 @@ struct ServiceCommand {
 
 #[derive(Subcommand)]
 enum SubCommand {
-    Run { command: String },
+    Run { native_path: String, args: String },
 }
 
-pub fn run_function(command: &Map<String, Value>) -> Result<u128, String> {
+pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<u128, String> {
+    let command = match serde_json::from_str(&match fs::read_to_string(
+        Path::new(native_path).join("function.json"),
+    ) {
+        Ok(t) => t,
+        Err(e) => return Err(e.to_string()),
+    }) {
+        Ok(t) => {
+            if let Value::Object(t) = t {
+                if let Some(Value::Object(t)) = t.get("command") {
+                    t.clone()
+                } else {
+                    return Err(format!(
+                        "Invalid key 'command' in function.json at {native_path}"
+                    ));
+                }
+            } else {
+                return Err(format!("Invalid function.json at {native_path}"));
+            }
+        }
+        Err(e) => return Err(e.to_string()),
+    };
+
     let mut program = match command.get("program") {
         Some(Value::String(program)) => Some(program.to_string()),
-        Some(_) | None => None,
+        _ => None,
     };
     let cwd = match command.get("cwd") {
         Some(Value::String(cwd)) => cwd,
-        Some(_) | None => &WORK_DIR.to_string(),
+        _ => native_path,
     };
     let mut envs = HashMap::new();
     let mut args = match command.get("args") {
-        Some(Value::Array(raw_args)) => {
+        Some(Value::Array(t)) => {
             let mut args: Vec<String> = Vec::new();
-            for arg in raw_args {
+            for arg in t {
                 if let Value::String(arg) = arg {
                     args.push(arg.clone());
                 }
             }
             args
         }
-        Some(_) | None => Vec::new(),
+        _ => Vec::new(),
     };
+    args.extend(external_args);
 
     match command.get("template") {
-        Some(Value::String(template)) => {
-            if template == "python" {
+        Some(Value::String(template)) => match template.as_str() {
+            "python" => {
                 program = Some("python".to_string());
                 envs.insert("PYTHONPATH".to_string(), WORK_DIR.to_string());
                 args.insert(0, "__main__.py".to_string());
-            } else {
-                warn!("Unkown template: {}", template);
             }
-        }
+            "function" => {
+                let Some(Value::String(function_path)) = command.get("program") else {
+                    return Err(format!("Template 'function' needs provide key 'program'"));
+                };
+                let args = if let Some(Value::Array(t)) = command.get("args") {
+                    let mut args: Vec<String> = Vec::new();
+                    for arg in t {
+                        if let Value::String(arg) = arg {
+                            args.push(arg.clone());
+                        }
+                    }
+                    args
+                } else {
+                    return Err(format!("Invalid args: {:?}", command.get("args")));
+                };
+                return run_function(
+                    match get_fcb(&mut fcb_root.lock().unwrap(), function_path) {
+                        Ok(t) => &t.native_paths[0],
+                        Err(e) => return Err(e),
+                    },
+                    args,
+                );
+            }
+            _ => warn!("Unkown template: {}", template),
+        },
         Some(template) => {
             warn!("Unkown template: {}", template);
         }
@@ -125,8 +173,8 @@ pub fn function_service() {
                 t
             }) {
                 Ok(ServiceCommand { sub_command }) => match sub_command {
-                    SubCommand::Run { command } => {
-                        let json_str = match BASE64_STANDARD.decode(command) {
+                    SubCommand::Run { native_path, args } => {
+                        let json_str = match BASE64_STANDARD.decode(args) {
                             Ok(t) => t,
                             Err(e) => {
                                 error_log_and_write(writer, e.to_string());
@@ -134,22 +182,33 @@ pub fn function_service() {
                             }
                         };
                         let json_str = String::from_utf8_lossy(&json_str);
-                        match match serde_json::from_str(&json_str) {
-                            Ok(command) => {
-                                if let Value::Object(command) = command {
-                                    match run_function(&command) {
-                                        Ok(t) => Ok(t),
-                                        Err(e) => Err(e),
+                        let args = match serde_json::from_str(&json_str) {
+                            Ok(args) => {
+                                if let Value::Array(t) = args {
+                                    let mut args: Vec<String> = Vec::new();
+                                    for arg in t {
+                                        if let Value::String(arg) = arg {
+                                            args.push(arg.clone());
+                                        }
                                     }
+                                    args
                                 } else {
-                                    Err(format!("{} is not a json object", json_str))
+                                    error_log_and_write(
+                                        writer,
+                                        format!("Invalid external args: {}", json_str),
+                                    );
+                                    return;
                                 }
                             }
-                            Err(e) => Err(format!("Cannot parse {}: {}", json_str, e)),
-                        } {
+                            Err(e) => {
+                                error_log_and_write(writer, e.to_string());
+                                return;
+                            }
+                        };
+                        match run_function(&native_path, args.clone()) {
                             Ok(_) => {
                                 write_ok(writer);
-                                info!("Run {json_str}");
+                                info!("Run {native_path} with {args:?}");
                             }
                             Err(e) => {
                                 error_log_and_write(writer, e);
