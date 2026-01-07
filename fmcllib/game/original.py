@@ -223,15 +223,24 @@ def parse_rules(rules: list[Rule]) -> bool:
         "version": platform.version(),
         "arch": {"32bit": "x86", "64bit": "x64"}[platform.architecture()[0]],
     }
+    features = {
+        "is_demo_user": False,
+        "has_custom_resolution": True,
+        "has_quick_plays_support": False,
+        "is_quick_play_singleplayer": False,
+        "is_quick_play_multiplayer": False,
+        "is_quick_play_realms": False,
+    }
     for rule in rules:
         mismatch = False
         for key, val in rule.get("os", dict()).items():
             if key in os_dict and val != os_dict[key]:
                 mismatch = True
                 break
-        # TODO features
         for key, val in rule.get("features", dict()).items():
-            return False
+            if key in features and val != features[key]:
+                mismatch = True
+                break
         if rule["action"] == "allow" and mismatch:
             return False
         if rule["action"] == "disallow" and not mismatch:

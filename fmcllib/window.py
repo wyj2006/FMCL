@@ -25,8 +25,7 @@ class Window(FramelessWindow):
 
     def showTitleBarContextMenu(self):
         menu = RoundMenu()
-        for action in getattr(self.client, "titlebar_contextmenu_actions", []):
-            menu.addAction(action)
+        menu.addActions(self.client.actions())
         if menu.actions():  # 有action再显示
             menu.exec(QCursor.pos())
 

@@ -52,20 +52,17 @@ class WindowSource(WidgetSource):
                     )
             case (
                 "titlebar",
-                "contextmenu",
                 "action",
                 "add" | "remove" as op,
                 name,
             ):
                 widget: QWidget = self.parent()
-                if not hasattr(widget, "titlebar_contextmenu_actions"):
-                    widget.titlebar_contextmenu_actions = []
                 if op == "add":
-                    widget.titlebar_contextmenu_actions.append(ActionMirror(name))
+                    widget.addAction(ActionMirror(name))
                 elif op == "remove":
-                    for action in widget.titlebar_contextmenu_actions:
+                    for action in widget.actions():
                         if isinstance(action, ActionMirror) and action.name == name:
-                            widget.titlebar_contextmenu_actions.remove(action)
+                            widget.removeAction(action)
                             action.deleteLater()
                             break
         return super()._handleRecvData(args)
@@ -125,7 +122,6 @@ class WindowMirror(WidgetMirror):
             " ".join(
                 [
                     "titlebar",
-                    "contextmenu",
                     "action",
                     "remove",
                     self.action_source.name + "\0",
@@ -146,7 +142,6 @@ class WindowMirror(WidgetMirror):
             " ".join(
                 [
                     "titlebar",
-                    "contextmenu",
                     "action",
                     "add",
                     self.action_source.name + "\0",

@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 from PyQt6.QtCore import QCoreApplication
@@ -14,9 +15,14 @@ tr = QCoreApplication.translate
 window = None
 setting_editor = None
 
-setting_path = SETTING_DEFAULT_PATH
-if len(sys.argv) > 1:
-    setting_path = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--setting-path",
+    help=tr("SettingEditor", "设置文件路径"),
+    default=SETTING_DEFAULT_PATH,
+)
+args = parser.parse_args()
+setting_path = args.setting_path
 
 
 def handle():

@@ -2,6 +2,7 @@ import logging
 import traceback
 
 from PyQt6.QtCore import QEvent, QSize, Qt
+from PyQt6.QtGui import QAction, QCursor
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QLabel,
@@ -10,6 +11,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from qfluentwidgets import FluentIcon, RoundMenu
 
 from fmcllib import show_qerrormessage
 from fmcllib.filesystem import listdir
@@ -34,17 +36,32 @@ class FunctionViewer(QWidget):
         self.name_label.setWordWrap(True)
         self.layout().addWidget(self.name_label)
 
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
+
         self.setToolTip(self.function.display_name)
 
-    def mouseDoubleClickEvent(self, a0):
+    def showContextMenu(self):
+        menu = RoundMenu()
+
+        run_action = QAction(FluentIcon.PLAY.icon(), self.tr("运行"))
+        run_action.triggered.connect(self.run)
+        menu.addAction(run_action)
+
+        menu.exec(QCursor.pos())
+
+    def run(self):
         try:
             self.function.run().unwrap()
         except:
             show_qerrormessage(
-                self.tr("运行{path}出错").format(path=self.function.path),
+                self.tr("运行{path}时出错").format(path=self.function.path),
                 traceback.format_exc(),
                 self,
             )
+
+    def mouseDoubleClickEvent(self, a0):
+        self.run()
         return super().mouseDoubleClickEvent(a0)
 
 
