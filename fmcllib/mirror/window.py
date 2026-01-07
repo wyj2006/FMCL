@@ -6,7 +6,7 @@ from qfluentwidgets import FluentIcon
 from fmcllib.window import Window
 
 from .action import ActionMirror, ActionSource
-from .common import event_to_command
+from .common import event_to_command, handle_command
 from .widget import WidgetMirror, WidgetSource
 
 
@@ -20,23 +20,35 @@ class WindowSource(WidgetSource):
                     f"{event_to_command(QEvent(QEvent.Type.WindowTitleChange),self.parent())}\0".encode()
                 )
             case ("embed",) if not self.embeded:
-                for widget_info in getattr(self.parent(), "titlebar_widgets", []):
-                    widget: QWidget = widget_info["widget"]
-                    widget_source = WidgetSource(widget)
-                    widget.installEventFilter(widget_source)
-                    widget_info["widget_source"] = widget_source
+                window: Window = self.parent().window()
+                if isinstance(window, Window):
+                    self.titlebar = window.titleBar
+                    self.titlebar.window().removeEventFilter(self.titlebar)
+                    self.titlebar.setParent(None)  # 避免Window将上面的widget移除
+
+                    for widget in (
+                        self.titlebar.minBtn,
+                        self.titlebar.maxBtn,
+                        self.titlebar.closeBtn,
+                    ):
+                        self.titlebar.hBoxLayout.removeWidget(widget)
+                        widget.setParent(None)  # 避免对后续的计算产生影响
+                        widget.deleteLater()
+
+                    # 转移这些行为
+                    self.titlebar.mouseDoubleClickEvent = lambda e: self.socket.write(
+                        f"titlebar event {event_to_command(e,self.titlebar)}\0".encode()
+                    )
+                    self.titlebar.mouseMoveEvent = lambda e: self.socket.write(
+                        f"titlebar event {event_to_command(e,self.titlebar)}\0".encode()
+                    )
+                    self.titlebar.mousePressEvent = lambda e: self.socket.write(
+                        f"titlebar event {event_to_command(e,self.titlebar)}\0".encode()
+                    )
+
+                    self.titlebar_source = WidgetSource(self.titlebar)
                     self.socket.write(
-                        " ".join(
-                            [
-                                "titlebar",
-                                "widgets",
-                                "add",
-                                str(widget_info["index"]),
-                                widget_source.name,
-                                widget_info.get("stretch", "0"),
-                                widget_info.get("alignment", "AlignLeft") + "\0",
-                            ]
-                        ).encode()
+                        f"titlebar mirror {self.titlebar_source.name}\0".encode()
                     )
             case (
                 "titlebar",
@@ -60,15 +72,14 @@ class WindowSource(WidgetSource):
 
     def detach(self, datas):
         super().detach(datas)
-        for widget_info in getattr(self.parent(), "titlebar_widgets", []):
-            try:
-                widget_info["widget_source"].deleteLater()
-            except (RuntimeError, KeyError):
-                pass
+        try:
+            self.titlebar_source.deleteLater()
+        except RuntimeError:
+            pass
 
 
 class WindowMirror(WidgetMirror):
-    titlebarWidgetsChanged = pyqtSignal()
+    titlebarChanged = pyqtSignal()
 
     def __init__(self, name: str, parent=None):
         super().__init__(name, parent)
@@ -78,48 +89,26 @@ class WindowMirror(WidgetMirror):
             Window.BORDER_WIDTH,
             Window.BORDER_WIDTH,
         )
-        self.titlebar_widgets = []
+        self.titlebar: WidgetMirror = None
 
     def _handleRecvData(self, args: tuple[str]):
         match args:
-            case (
-                "titlebar",
-                "widgets",
-                "add" | "remove" as op,
-                index,
-                name,
-                stretch,
-                alignment,
-            ):
-                if op == "add":
-                    self.titlebar_widgets.append(
-                        {
-                            "index": int(index),
-                            "widget": WidgetMirror(name),
-                            "stretch": int(stretch),
-                            "alignemnt": alignment,
-                        }
-                    )
-                elif op == "remove":
-                    for i in range(len(self.titlebar_widgets)):
-                        widget_info = self.titlebar_widgets[i]
-                        if (
-                            widget_info["index"] == int(index)
-                            and widget_info["widget"].name == name
-                            and widget_info["stretch"] == int(stretch)
-                            and widget_info["alignment"] == alignment
-                        ):
-                            self.titlebar_widgets.pop(i)
-                            break
-                self.titlebarWidgetsChanged.emit()
+            case ("titlebar", "mirror", name):
+                self.titlebar = WidgetMirror(name)
+                self.titlebarChanged.emit()
+            case ("titlebar", "event", *event):
+                window = self.window()
+                if isinstance(window, Window):
+                    handle_command(window.titleBar, " ".join(event))
         return super()._handleRecvData(args)
 
     def detach(self, follow_commands=None):
         if self.detached:
             return
 
-        while self.titlebar_widgets:
-            self.titlebar_widgets.pop()["widget"].detach()
+        if self.titlebar != None:
+            self.titlebar.detach(["close"])
+            self.titlebar = None
 
         self.addEmbedAction()
 

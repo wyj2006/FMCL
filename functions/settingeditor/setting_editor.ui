@@ -19,6 +19,11 @@
    </item>
    <item row="1" column="0">
     <widget class="QSplitter" name="splitter">
+     <property name="styleSheet">
+      <string notr="true">QSplitter::handle{
+    background-color:rgb(235,235,235);
+}</string>
+     </property>
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
@@ -39,7 +44,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>69</width>
+         <width>130</width>
          <height>572</height>
         </rect>
        </property>
@@ -51,8 +56,8 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>40</height>
+            <width>0</width>
+            <height>0</height>
            </size>
           </property>
          </spacer>

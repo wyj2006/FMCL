@@ -4,8 +4,9 @@ import logging
 from typing import Literal, TypedDict
 
 from PyQt6.QtCore import QBuffer, QEvent, QIODevice, QObject, pyqtSignal
-from PyQt6.QtGui import QIcon, QImage, QPixmap
+from PyQt6.QtGui import QIcon, QImage, QMouseEvent, QPixmap
 from PyQt6.QtNetwork import QTcpServer, QTcpSocket
+from PyQt6.QtWidgets import QApplication
 from result import Err, Ok, Result
 
 from fmcllib.address import getall_address, register_address, unregister_address
@@ -87,6 +88,14 @@ def event_to_command(event: QEvent, source: QObject) -> str:
             return "close"
         case QEvent.Type.DeferredDelete:
             return "deletelater"
+        case (
+            QEvent.Type.MouseButtonDblClick
+            | QEvent.Type.MouseButtonPress
+            | QEvent.Type.MouseMove
+        ):
+            event: QMouseEvent
+            event_expr = f"QMouseEvent(QEvent.Type.{event.type().name},{event.pos()},{event.button()},{event.buttons()},{event.modifiers()})"
+            return f"mouse {base64.b64encode(event_expr.encode()).decode()}"
         case _:
             return "nop"
 
@@ -134,6 +143,22 @@ def handle_command(target: QObject, command: str) -> tuple[str]:
             target.activateWindow()
         case ("deletelater",):
             target.deleteLater()
+        case ("mouse", event_expr):
+            event_expr = (
+                base64.b64decode(event_expr).decode().replace("QPoint", "QPointF")
+            )
+            vars = {}
+            exec(
+                f"""import PyQt6
+from PyQt6.QtCore import Qt,QEvent
+from PyQt6.QtGui import QMouseEvent
+MouseButton = Qt.MouseButton
+KeyboardModifier = Qt.KeyboardModifier
+event={event_expr}""",
+                vars,
+            )
+            event = vars["event"]
+            QApplication.sendEvent(target, event)
     return args
 
 

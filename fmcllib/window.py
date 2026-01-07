@@ -23,29 +23,6 @@ class Window(FramelessWindow):
         self.titleBar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.titleBar.customContextMenuRequested.connect(self.showTitleBarContextMenu)
 
-        self.addTitleBarWidgets()
-
-    def addTitleBarWidgets(self):
-        for widget_info in getattr(self.client, "titlebar_widgets", []):
-            index: int = widget_info["index"]
-            widget: QWidget = widget_info["widget"]
-            stretch: int = widget_info.get("stretch", 0)
-            alignment = widget_info.get("alignment", "AlignLeft")
-            if alignment == "AlignRight":
-                index += 1  # 略过titlebar的spaceritem
-            self.titleBar.hBoxLayout.insertWidget(
-                index, widget, stretch, getattr(Qt.AlignmentFlag, alignment)
-            )
-
-    def removeTitleBarWidgets(self):
-        for widget_info in getattr(self.client, "titlebar_widgets", []):
-            try:
-                widget: QWidget = widget_info["widget"]
-                self.titleBar.hBoxLayout.removeWidget(widget)
-                widget.setParent(None)  # 防止它继续在标题栏上显示
-            except RuntimeError:
-                pass
-
     def showTitleBarContextMenu(self):
         menu = RoundMenu()
         for action in getattr(self.client, "titlebar_contextmenu_actions", []):

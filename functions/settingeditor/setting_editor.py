@@ -10,7 +10,7 @@ from PyQt6.QtCore import (
     Qt,
 )
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QApplication, QLabel, QWidget
+from PyQt6.QtWidgets import QApplication, QLabel, QSizePolicy, QSpacerItem, QWidget
 from qfluentwidgets import FluentIcon, PushButton, TransparentToolButton
 from settingcard import SettingCard, dispatch_card
 from settingcard.mirror_card import MirrorCard
@@ -202,14 +202,6 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             lambda: Function("/functions/accountmanager").run()
         )
 
-        self.titlebar_widgets = [
-            {
-                "index": 0,
-                "widget": self.editinjson_button,
-                "alignment": "AlignRight",
-            }
-        ]
-
         self.cards: dict[str, SettingCard] = {}
         self.key_labels: dict[str, QLabel] = {}
         self.genCards()
@@ -252,6 +244,9 @@ class SettingEditor(QWidget, Ui_SettingEditor):
                     return super().event(e)
                 self.editinjson_button.setFixedHeight(window.titleBar.height())
                 self.editinjson_button.setFixedWidth(window.titleBar.closeBtn.width())
+                window.titleBar.hBoxLayout.insertWidget(
+                    1, self.editinjson_button, 0, Qt.AlignmentFlag.AlignRight
+                )
             case QEvent.Type.Close | QEvent.Type.DeferredDelete:
                 for i in self.cards.values():
                     if isinstance(i, MirrorCard):
@@ -267,10 +262,17 @@ class SettingEditor(QWidget, Ui_SettingEditor):
 
     def genCards(self, key=""):
         if key == "":  # 根
-            self.edit_layout.removeItem(self.compress_spacer)
+            while self.edit_layout.count() > 0:
+                item = self.edit_layout.takeAt(0)
+                if item.widget() != None:
+                    item.widget().deleteLater()
             for name in self.setting.children(key).unwrap():
                 self.genCards(name)
-            self.edit_layout.addItem(self.compress_spacer)
+            self.edit_layout.addItem(
+                QSpacerItem(
+                    0, 0, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding
+                )
+            )
             return
 
         attr = self.setting.get_allattr(key).unwrap()

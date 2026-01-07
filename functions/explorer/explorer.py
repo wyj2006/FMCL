@@ -1,9 +1,16 @@
 from typing import Union
 
+import qtawesome as qta
 from desktop import Desktop
 from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, pyqtSlot
 from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QApplication, QStackedWidget, QWidget
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QSplitter,
+    QStackedWidget,
+    QWidget,
+)
 from qfluentwidgets import FluentIcon, RoundMenu, TabItem, TransparentToolButton
 from start import Start
 from taskbar import TaskBar
@@ -36,6 +43,9 @@ class Explorer(QStackedWidget):
             + origin_stylesheet[insert_index:]
         )
 
+        self.desktop_button = TransparentToolButton(qta.icon("ph.desktop"))
+        self.desktop_button.clicked.connect(self.showDesktop)
+
         self.task_bar = TaskBar()
         self.task_bar.tabCloseRequested.connect(
             lambda index: self.captured_windows[
@@ -43,8 +53,17 @@ class Explorer(QStackedWidget):
             ].close()
         )
 
+        self.splitter = QSplitter(self)
+        self.splitter.setOrientation(Qt.Orientation.Horizontal)
+        self.splitter.addWidget(self.task_bar)
+
+        widget = QWidget()
+        self.titlebar_layout = QHBoxLayout()
+        self.titlebar_layout.setContentsMargins(0, 0, 0, 0)
+        widget.setLayout(self.titlebar_layout)
+        self.splitter.addWidget(widget)
+
         self.captured_windows: dict[str, WindowMirror] = {}
-        self.titlebar_widgets = []
 
         self.capture_timer = QTimer(self)
         self.capture_timer.timeout.connect(self.capture)
@@ -53,9 +72,6 @@ class Explorer(QStackedWidget):
         QApplication.instance().aboutToQuit.connect(self.on_aboutToQuit)
 
         self.currentChanged.connect(self.on_explorer_currentChanged)
-        # self.widgetAdded.connect(self.on_explorer_widgetAdded)
-        # self.widgetRemoved.connect(self.on_explorer_widgetRemoved)
-        # QMetaObject.connectSlotsByName(self)
 
     def event(self, e: QEvent):
         match e.type():
@@ -73,7 +89,12 @@ class Explorer(QStackedWidget):
                 window.titleBar.hBoxLayout.insertWidget(0, self.start_button)
 
                 self.task_bar.setFixedHeight(window.titleBar.height())
-                window.titleBar.hBoxLayout.insertWidget(1, self.task_bar, 1)
+                window.titleBar.hBoxLayout.insertWidget(1, self.splitter, 1)
+
+                self.desktop_button.setFixedSize(window.titleBar.closeBtn.size())
+                window.titleBar.hBoxLayout.insertWidget(
+                    2, self.desktop_button, 0, Qt.AlignmentFlag.AlignRight
+                )
         return super().event(e)
 
     def showStart(self):
@@ -90,6 +111,10 @@ class Explorer(QStackedWidget):
         else:
             self.showStart()
 
+    def showDesktop(self):
+        while self.count() > 1:
+            super().removeWidget(self.widget(1))
+
     @pyqtSlot(int)
     def on_explorer_currentChanged(self, _):
         if self.currentWidget() != self.start:
@@ -103,24 +128,31 @@ class Explorer(QStackedWidget):
             name = window_mirror.name
             item = self.task_bar.tab(name)
             item.setSelected(True)
-        self.updateTitleBarWidgets(
-            getattr(self.currentWidget(), "titlebar_widgets", list())
-        )
+        self.updateTitleBar(getattr(self.currentWidget(), "titlebar", None))
 
-    def updateTitleBarWidgets(self, titlebar_widgets: list):
+    def updateTitleBar(self, titlebar: QWidget):
         window = self.window()
         if not isinstance(window, Window):
             return
-        window.removeTitleBarWidgets()
-        self.titlebar_widgets = titlebar_widgets[:]
-        for widget_info in self.titlebar_widgets:
-            index: int = widget_info["index"]
-            widget: QWidget = widget_info["widget"]
-            stretch: int = widget_info.get("stretch", 0)
-            alignment = widget_info.get("alignment", "AlignLeft")
-            index += 2
-            window.titleBar.hBoxLayout.insertWidget(
-                index, widget, stretch, getattr(Qt.AlignmentFlag, alignment)
+        while self.titlebar_layout.count() > 0:
+            item = self.titlebar_layout.takeAt(0)
+            if item.widget() != None:
+                item.widget().setParent(None)
+        if titlebar != None:
+            self.titlebar_layout.addWidget(titlebar)
+        if self.titlebar_layout.count() > 0:
+            self.splitter.setSizes([900, 100])
+            self.splitter.setStyleSheet(
+                """QSplitter::handle{
+                    background-color:rgb(235,235,235);
+                }"""
+            )
+        else:
+            self.splitter.setSizes([4, 0])
+            self.splitter.setStyleSheet(
+                """QSplitter::handle{
+                    background-color:rgba(255,255,255,0);
+                }"""
             )
 
     def addWidget(self, window_mirror: Union[WindowMirror, QWidget]):
@@ -162,9 +194,9 @@ class Explorer(QStackedWidget):
             if val["kind"] != "window" or name in self.captured_windows:
                 continue
             window_mirror = self.captured_windows[name] = WindowMirror(name)
-            window_mirror.titlebarWidgetsChanged.connect(
+            window_mirror.titlebarChanged.connect(
                 lambda wm=window_mirror: (
-                    self.updateTitleBarWidgets(wm.titlebar_widgets)
+                    self.updateTitleBar(wm.titlebar)
                     if wm == self.currentWidget()
                     else None
                 )
@@ -181,6 +213,7 @@ class Explorer(QStackedWidget):
                 case QEvent.Type.Show:
                     if self.indexOf(watched) == -1:
                         self.addWidget(watched)
+                        self.setCurrentWidget(watched)
                 case QEvent.Type.DeferredDelete:
                     watched.removeEventFilter(self)
                     self.captured_windows.pop(watched.name)
