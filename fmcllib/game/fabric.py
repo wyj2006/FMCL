@@ -81,13 +81,8 @@ def download_fabric_installer(
 
 
 def install_fabric(
-    name: str, original_version: str, loader_version: str
+    game_dir: str, name: str, original_version: str, loader_version: str
 ) -> Result[None, str]:
-    match fileinfo("/.minecraft"):
-        case Ok(t):
-            game_dir = t["native_paths"][-1]
-        case Err(e):
-            return Err(e)
     with Task(f"安装Fabric(名称:{name})") as task_id:
         modify_task(task_id, ATTR_CURRENT_WORK, "安装库")
 

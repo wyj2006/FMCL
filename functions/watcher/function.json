@@ -1,6 +1,6 @@
 {
     "type": "executable",
-    "display_name": "Init",
+    "display_name": "Watcher",
     "translation_context": "System",
     "command": {
         "template": "python"

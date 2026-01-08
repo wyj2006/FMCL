@@ -169,11 +169,14 @@ pub fn listdir(root: &mut FCB, path: &String) -> Result<Vec<String>, String> {
                 } {
                     let entry = match result_entry {
                         Ok(t) => t,
-                        Err(e) => {
-                            return Err(e.to_string());
+                        Err(_) => {
+                            continue;
                         }
                     };
-                    names.push(entry.file_name().to_str().unwrap().to_string());
+                    let name = entry.file_name().to_str().unwrap().to_string();
+                    if !names.contains(&name) {
+                        names.push(name);
+                    }
                 }
             }
             //虚拟的子项
@@ -186,7 +189,11 @@ pub fn listdir(root: &mut FCB, path: &String) -> Result<Vec<String>, String> {
             //挂载在上面的子项
             if let Some(source_paths) = mount_table.read().unwrap().get(&t.path) {
                 for source_path in source_paths {
-                    names.extend(listdir(root, source_path)?);
+                    for name in listdir(root, source_path)? {
+                        if !names.contains(&name) {
+                            names.push(name);
+                        }
+                    }
                 }
             }
             Ok(names)
@@ -212,6 +219,7 @@ pub fn unmount_native(root: &mut FCB, path: &String, native_path: &String) -> Re
         Ok(t) => {
             if let Some(index) = t.native_paths.iter().position(|x| x == native_path) {
                 t.native_paths.remove(index);
+                t.unload_all(); //已有的children将要重新加载
             }
             Ok(())
         }
@@ -236,6 +244,7 @@ pub fn unmount(root: &mut FCB, target_path: &String, source_path: &String) -> Re
     if let Some(t) = mt.get_mut(&fcb.path) {
         if let Some(i) = t.iter().position(|x| x == source_path) {
             t.remove(i);
+            fcb.unload_all(); //已有的children将要重新加载
         }
     }
     Ok(())
@@ -265,7 +274,7 @@ pub fn filesystem_service() {
         "filesystem".to_string(),
         String::from("127.0.0.1:0"),
         |_stream, _reader, writer, _buf, args| {
-            let parent = &mut fcb_root.lock().unwrap();
+            let root = &mut fcb_root.lock().unwrap();
             match ServiceCommand::try_parse_from({
                 let mut t = vec!["filesystem".to_string()];
                 t.extend(args);
@@ -273,7 +282,7 @@ pub fn filesystem_service() {
             }) {
                 Ok(ServiceCommand { sub_command }) => match sub_command {
                     SubCommand::Fileinfo { path } => {
-                        match get_fcb(parent, &path) {
+                        match get_fcb(root, &path) {
                             Ok(t) => {
                                 writer
                                     .write_all(
@@ -293,7 +302,7 @@ pub fn filesystem_service() {
                             }
                         };
                     }
-                    SubCommand::Listdir { path } => match listdir(parent, &path) {
+                    SubCommand::Listdir { path } => match listdir(root, &path) {
                         Ok(t) => {
                             writer
                                 .write_all(
@@ -311,7 +320,7 @@ pub fn filesystem_service() {
                         }
                     },
                     SubCommand::MountNative { path, native_path } => {
-                        match mount_native(parent, &path, &native_path) {
+                        match mount_native(root, &path, &native_path) {
                             Ok(_) => {
                                 write_ok(writer);
                             }
@@ -321,7 +330,7 @@ pub fn filesystem_service() {
                         }
                     }
                     SubCommand::UnmountNative { path, native_path } => {
-                        match unmount_native(parent, &path, &native_path) {
+                        match unmount_native(root, &path, &native_path) {
                             Ok(_) => {
                                 write_ok(writer);
                             }
@@ -330,7 +339,7 @@ pub fn filesystem_service() {
                             }
                         }
                     }
-                    SubCommand::Makedirs { path } => match makedirs(parent, &path) {
+                    SubCommand::Makedirs { path } => match makedirs(root, &path) {
                         Ok(_) => {
                             write_ok(writer);
                         }
@@ -341,14 +350,14 @@ pub fn filesystem_service() {
                     SubCommand::Mount {
                         target_path,
                         source_path,
-                    } => match mount(parent, &target_path, &source_path) {
+                    } => match mount(root, &target_path, &source_path) {
                         Ok(_) => write_ok(writer),
                         Err(e) => error_log_and_write(writer, e),
                     },
                     SubCommand::Unmount {
                         target_path,
                         source_path,
-                    } => match unmount(parent, &target_path, &source_path) {
+                    } => match unmount(root, &target_path, &source_path) {
                         Ok(_) => write_ok(writer),
                         Err(e) => error_log_and_write(writer, e),
                     },

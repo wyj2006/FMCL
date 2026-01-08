@@ -1,4 +1,5 @@
 import threading
+import traceback
 
 from fabric_selector import FabricSelector
 from game_selector import GameSelector
@@ -8,6 +9,11 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import FluentIcon
 from ui_game_downloader import Ui_GameDownloader
 
+from fmcllib import show_qerrormessage
+from fmcllib.filesystem import fileinfo
+from fmcllib.function import Function
+from fmcllib.setting import Setting
+
 
 class GameDownloader(QWidget, Ui_GameDownloader):
     versionChanged = pyqtSignal(str, str)  # version为空代表没有选择
@@ -16,6 +22,8 @@ class GameDownloader(QWidget, Ui_GameDownloader):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(FluentIcon.DOWNLOAD.icon())
+
+        self.game_dirs.addItems(Setting().get("game.dirs").unwrap_or([]))
 
         self.selectors: dict[str, GameSelector] = {
             "original": OriginalSelector,
@@ -111,6 +119,7 @@ class GameDownloader(QWidget, Ui_GameDownloader):
     @pyqtSlot(bool)
     def on_download_button_clicked(self, _):
         t = []
+        name = self.instance_name.text()
         for _, selector in self.selectors.items():
             if (
                 not isinstance(selector, type)
@@ -118,8 +127,7 @@ class GameDownloader(QWidget, Ui_GameDownloader):
                 or not hasattr(selector, "selected_version")
             ):
                 continue
-            f = selector.download(self.instance_name.text())
-            if f == None:
+            if (f := selector.download(name)) == None:
                 return
             t.append(f)
         # 解决依赖问题
@@ -128,6 +136,8 @@ class GameDownloader(QWidget, Ui_GameDownloader):
     @pyqtSlot(bool)
     def on_download_install_button_clicked(self, _):
         t = []
+        name = self.instance_name.text()
+        game_dir = self.game_dirs.currentText()
         for _, selector in self.selectors.items():
             if (
                 not isinstance(selector, type)
@@ -135,9 +145,12 @@ class GameDownloader(QWidget, Ui_GameDownloader):
                 or not hasattr(selector, "selected_version")
             ):
                 continue
-            f = selector.install(self.instance_name.text())
-            if f == None:
+            if (f := selector.install(name, game_dir)) == None:
                 return
             t.append(f)
         # 解决依赖问题
         threading.Thread(target=lambda: list([i() for i in t]), daemon=True).start()
+
+    @pyqtSlot(bool)
+    def on_add_dir_button_clicked(self, _):
+        Function.quick_run("/functions/settingeditor", "--key", "game.dirs")

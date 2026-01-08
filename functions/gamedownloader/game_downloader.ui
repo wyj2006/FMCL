@@ -14,14 +14,20 @@
    <string>游戏下载器</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="4">
-    <widget class="PushButton" name="download_button">
+   <item row="0" column="3">
+    <widget class="CheckBox" name="auto_set_instance_name">
      <property name="text">
-      <string>下载</string>
+      <string>自动设置实例名称</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="6">
+   <item row="2" column="0" colspan="6">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="TransparentTogglePushButton" name="select_original">
@@ -52,6 +58,30 @@
      </item>
     </layout>
    </item>
+   <item row="0" column="5">
+    <widget class="PushButton" name="download_install_button">
+     <property name="text">
+      <string>下载并安装</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="6">
+    <widget class="QStackedWidget" name="selector_stack"/>
+   </item>
+   <item row="0" column="4">
+    <widget class="PushButton" name="download_button">
+     <property name="text">
+      <string>下载</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0" colspan="6">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="SegmentedWidget" name="pivot" native="true"/>
+     </item>
+    </layout>
+   </item>
    <item row="0" column="1" colspan="2">
     <widget class="LineEdit" name="instance_name"/>
    </item>
@@ -62,35 +92,22 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0" colspan="6">
-    <widget class="QStackedWidget" name="selector_stack"/>
-   </item>
-   <item row="0" column="5">
-    <widget class="PushButton" name="download_install_button">
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>下载并安装</string>
+      <string>安装到的游戏目录</string>
      </property>
     </widget>
    </item>
-   <item row="0" column="3">
-    <widget class="CheckBox" name="auto_set_instance_name">
+   <item row="1" column="1" colspan="4">
+    <widget class="ComboBox" name="game_dirs"/>
+   </item>
+   <item row="1" column="5">
+    <widget class="PushButton" name="add_dir_button">
      <property name="text">
-      <string>自动设置实例名称</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
+      <string>添加</string>
      </property>
     </widget>
-   </item>
-   <item row="2" column="0" colspan="6">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="SegmentedWidget" name="pivot" native="true"/>
-     </item>
-    </layout>
    </item>
   </layout>
  </widget>
@@ -119,6 +136,11 @@
   <customwidget>
    <class>CheckBox</class>
    <extends>QCheckBox</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ComboBox</class>
+   <extends>QComboBox</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>

@@ -5,9 +5,10 @@ use base64::prelude::*;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::{info, warn};
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs;
+use std::io::Write;
 use std::path::Path;
 use std::process::{Child, Command};
 use std::sync::Mutex;
@@ -26,6 +27,7 @@ struct ServiceCommand {
 #[derive(Subcommand)]
 enum SubCommand {
     Run { native_path: String, args: String },
+    GetallRunning,
 }
 
 pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<u128, String> {
@@ -214,6 +216,14 @@ pub fn function_service() {
                                 error_log_and_write(writer, e);
                             }
                         }
+                    }
+                    SubCommand::GetallRunning => {
+                        let mut data = json!({});
+                        for (timestamp, child) in running_functions.lock().unwrap().iter() {
+                            data[timestamp] = json!(child.id());
+                        }
+                        writer.write_all(data.to_string().as_bytes()).unwrap();
+                        writer.flush().unwrap();
                     }
                 },
                 Err(e) => error_log_and_write(writer, e.to_string()),

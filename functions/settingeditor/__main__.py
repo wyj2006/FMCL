@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from PyQt6.QtCore import QCoreApplication
+from PyQt6.QtWidgets import QApplication
 from setting_editor import SettingEditor
 
 import resources as _
@@ -21,8 +22,11 @@ parser.add_argument(
     help=tr("SettingEditor", "设置文件路径"),
     default=SETTING_DEFAULT_PATH,
 )
+parser.add_argument("--key", help=tr("SettingEditor", "定位到指定的key"), default=None)
+
 args = parser.parse_args()
 setting_path = args.setting_path
+naviagate_key = args.key
 
 
 def handle():
@@ -44,7 +48,6 @@ def handle():
 
 def main():
     global window, setting_editor
-
     setting_editor = SettingEditor(setting_path)
     setting_editor.installEventFilter(
         WindowSource(
@@ -54,6 +57,9 @@ def main():
     )
     window = Window(setting_editor)
     window.show()
+    if naviagate_key != None:
+        QApplication.processEvents()
+        setting_editor.naviagate(naviagate_key)
 
 
 app = SingleApplication(sys.argv)

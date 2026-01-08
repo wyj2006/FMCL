@@ -5,31 +5,25 @@ mod setting_item;
 mod tcb;
 
 use crate::common::WORK_DIR;
-use crate::service::filesystem::get_or_create_fcb;
 use crate::service::function::kill_all_functions;
-use crate::setting_item::SettingItem;
 use anstyle::{AnsiColor, Color, Effects, RgbColor, Style};
 use chrono::Local;
-use hotwatch::{EventKind, Hotwatch};
 use log::{Level, error, info};
-use serde_json::{Value, json};
 use service::address::remove_address_disconnected;
 use service::filesystem::{fcb_root, get_fcb};
 use service::function::{remove_stopped_functions, run_function, running_functions};
 use service::setting::save_settings;
-use service::setting::{get_settingitem, setting_root};
 use service::{
     address_service, filesystem_service, function_service, logging_service, setting_service,
     task_service,
 };
 use std::collections::hash_map::DefaultHasher;
-use std::fs::{self, OpenOptions};
+use std::fs::OpenOptions;
 use std::hash::{Hash, Hasher};
-use std::path::Path;
+use std::panic;
 use std::process;
 use std::thread;
 use std::time::Duration;
-use std::{panic, path};
 
 pub fn default_level_style(level: Level) -> Style {
     match level {
@@ -38,124 +32,6 @@ pub fn default_level_style(level: Level) -> Style {
         Level::Info => AnsiColor::Green.on_default(),
         Level::Warn => AnsiColor::Yellow.on_default(),
         Level::Error => AnsiColor::Red.on_default().effects(Effects::BOLD),
-    }
-}
-
-///根据/settings.json里的内容更新/.minecraft的本地路径
-fn update_minecraft_mount() {
-    match get_or_create_fcb(&mut fcb_root.lock().unwrap(), &("/.minecraft".to_string())) {
-        Ok(t) => {
-            let game_dirs = match get_settingitem(
-                &mut setting_root.lock().unwrap(),
-                &SettingItem::key_join(&vec![
-                    &("/settings_json".to_string()),
-                    &("game.dirs".to_string()),
-                ]),
-            ) {
-                Ok(t) => {
-                    if t.value.is_array() {
-                        t.value.as_array().unwrap().clone()
-                    } else {
-                        vec![json!(".minecraft")]
-                    }
-                }
-                Err(_) => vec![json!(".minecraft")],
-            };
-            let cur_dir_index: usize = match get_settingitem(
-                &mut setting_root.lock().unwrap(),
-                &SettingItem::key_join(&vec![
-                    &("/settings_json".to_string()),
-                    &("game.cur_dir_index".to_string()),
-                ]),
-            ) {
-                Ok(t) => t.value.as_u64().unwrap_or(0) as usize,
-                Err(_) => 0,
-            };
-            let game_dir = if let Some(t) = game_dirs.get(cur_dir_index) {
-                if t.is_string() {
-                    t.as_str().unwrap()
-                } else {
-                    ".minecraft"
-                }
-            } else {
-                ".minecraft"
-            };
-            t.native_paths = vec![
-                path::absolute(game_dir)
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-            ];
-        }
-        Err(e) => {
-            error!("Cannot update /.minecraft: {e}");
-        }
-    }
-}
-
-///更新所有游戏下的function.json
-pub fn update_game_function() {
-    let game_dirs = match get_settingitem(
-        &mut setting_root.lock().unwrap(),
-        &SettingItem::key_join(&vec![
-            &("/settings_json".to_string()),
-            &("game.dirs".to_string()),
-        ]),
-    ) {
-        Ok(t) => {
-            if t.value.is_array() {
-                t.value.as_array().unwrap().clone()
-            } else {
-                vec![json!(".minecraft")]
-            }
-        }
-        Err(_) => vec![json!(".minecraft")],
-    };
-    for game_dir in game_dirs {
-        let Value::String(game_dir) = game_dir else {
-            continue;
-        };
-        let versions_path = Path::new(&game_dir).join("versions");
-        for game_path in match fs::read_dir(&versions_path) {
-            Ok(t) => t,
-            Err(e) => {
-                error!("{e}");
-                continue;
-            }
-        } {
-            let Ok(game_path) = game_path else {
-                continue;
-            };
-            let function_path = game_path.path().join("function.json");
-            let game_path = match path::absolute(game_path.path()) {
-                Ok(t) => t,
-                Err(e) => {
-                    error!("{e}");
-                    continue;
-                }
-            };
-            if let Err(e) = fs::write(
-                function_path,
-                json!({
-                    "type":"game",
-                    "display_name":game_path.file_name().unwrap().to_str().unwrap(),//TODO 根据游戏设置设置
-                    "translation_context":"Game",
-                    "icon":{
-                        "type":"QIcon",
-                        "value":":/image/grass@2x.png" //TODO 根据游戏设置设置
-                    },
-                    "command":{
-                        "template":"function",
-                        "program":"/functions/gamemonitor",
-                        "args":["--game-path",game_path]
-                    }
-                })
-                .to_string(),
-            ) {
-                error!("{e}");
-            }
-        }
     }
 }
 
@@ -267,42 +143,6 @@ fn main() {
             error!("Cannot run init: {e}");
         }
     };
-
-    let _watcher = match Hotwatch::new() {
-        Ok(mut t) => {
-            if let Err(e) = t.watch(
-                match get_fcb(
-                    &mut fcb_root.lock().unwrap(),
-                    &("/settings.json".to_string()),
-                ) {
-                    Ok(t) => t.native_paths[0].clone(),
-                    Err(_) => Path::new(&WORK_DIR.to_string())
-                        .join("settings.json")
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                },
-                |event| {
-                    let EventKind::Modify(_) = event.kind else {
-                        return;
-                    };
-                    //在/settings.json更改后更新/.minecraft对应的本地路径
-                    update_minecraft_mount();
-                    update_game_function();
-                },
-            ) {
-                error!("Cannot watch /settings.json: {e}");
-            }
-            //防止watcher被drop
-            Some(t)
-        }
-        Err(e) => {
-            error!("Fail to create a watcher: {e}");
-            None
-        }
-    };
-    update_minecraft_mount();
-    update_game_function();
 
     loop {
         thread::sleep(Duration::from_secs(1));

@@ -2,15 +2,15 @@ import base64
 import json
 import os
 import threading
-from typing import Any, TypedDict, Union
+from typing import Any, Literal, TypedDict, Union
 
 from result import Err, Ok, Result
 
 from fmcllib.address import get_service_connection
-from fmcllib.filesystem import readall
+from fmcllib.filesystem import fileinfo
 from fmcllib.wrapper import safe_function, singleton
 
-SETTING_DEFAULT_PATH = "/settings.json"
+SETTING_DEFAULT_PATH = fileinfo("/settings.json").unwrap()["native_paths"][0]
 client = get_service_connection("setting")
 lock = threading.Lock()
 
@@ -21,6 +21,7 @@ class SettingAttrDict(TypedDict):
     display_name: str
     translation_context: str
     description: str
+    scope: list[Literal["global", "game"]]
 
 
 class DefaultSettingDict(SettingAttrDict):
@@ -49,36 +50,16 @@ class Setting:
             filter(lambda x: x != "", map(lambda x: x.strip("."), map(str, args)))
         )
 
-    def __init__(self, path=SETTING_DEFAULT_PATH):
-        self.path = path
-        # 所有的设置都有一个共同的根, parent_key就是这个设置相对于根的路径
-        self.parent_key = path.replace(".", "_")
+    def __init__(self, native_path=SETTING_DEFAULT_PATH):
+        # 使用native_path让调用方处理可能存在的二义性
+        self.native_path = native_path
+        # 所有的设置都有一个共同的根, root_key就是这个设置相对于根的路径
+        self.root_key = native_path.replace(".", "").replace("\\", "/")
 
-        readall(
-            os.path.join(
-                os.path.dirname(path),
-                "defaultsettings.json",
-            ),
-            lambda contents: list(
-                (
-                    self.add_or_update(key, attr, True)
-                    if name == "default_value"
-                    else self.add_or_update_attr(key, name, attr)
-                )
-                for content in contents
-                for key, val in json.loads(content).items()
-                for name, attr in val.items()
-            ),
-        )
-        readall(
-            path,
-            lambda contents: list(
+        if os.path.exists(native_path):
+            for key, val in json.load(open(native_path, encoding="utf-8")).items():
                 self.add_or_update(key, val)
-                for content in contents
-                for key, val in json.loads(content).items()
-            ),
-        )
-        self.add_or_update("", path, True)  # 更改root的值
+        self.add_or_update("", native_path, True)  # 更改root的值
 
     @safe_function(lock)
     def add_or_update(self, key: str, value, is_default=False) -> Result[None, str]:
@@ -86,7 +67,7 @@ class Setting:
             " ".join(
                 [
                     f'add-or-update{"-default" if is_default else ""}',
-                    f'"{Setting.key_join(self.parent_key, key)}"',
+                    f'"{Setting.key_join(self.root_key, key)}"',
                     f"{base64.b64encode(json.dumps(value).encode()).decode()}\0",
                 ]
             ).encode()
@@ -103,7 +84,7 @@ class Setting:
             " ".join(
                 [
                     f"add-or-update-attr",
-                    f'"{Setting.key_join(self.parent_key, key)}"',
+                    f'"{Setting.key_join(self.root_key, key)}"',
                     attr_name,
                     f"{base64.b64encode(json.dumps(value).encode()).decode()}\0",
                 ]
@@ -117,7 +98,7 @@ class Setting:
 
     @safe_function(lock)
     def _get(self, key: str) -> Result[SettingDict, str]:
-        client.sendall(f'get "{Setting.key_join(self.parent_key, key)}"\0'.encode())
+        client.sendall(f'get "{Setting.key_join(self.root_key, key)}"\0'.encode())
         result = json.loads(client.recv(1024 * 1024))
 
         if "error_msg" in result:
@@ -161,7 +142,7 @@ class Setting:
     @safe_function(lock)
     def children(self, key: str) -> Result[list[str], str]:
         client.sendall(
-            f'list-children "{Setting.key_join(self.parent_key, key)}"\0'.encode()
+            f'list-children "{Setting.key_join(self.root_key, key)}"\0'.encode()
         )
         result = json.loads(client.recv(1024 * 1024))
 
@@ -172,7 +153,7 @@ class Setting:
     @safe_function(lock)
     def generate_json(self, key: str = "") -> Result[Union[dict, object], str]:
         client.sendall(
-            f'generate-json "{Setting.key_join(self.parent_key, key)}"\0'.encode()
+            f'generate-json "{Setting.key_join(self.root_key, key)}"\0'.encode()
         )
         result = json.loads(client.recv(1024 * 1024))
 

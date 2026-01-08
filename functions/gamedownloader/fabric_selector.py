@@ -149,7 +149,7 @@ class FabricSelector(GameSelector, Ui_FabricSelector):
         url = self.selected_viewer.installer["url"]
         return lambda: download_fabric_installer(name, path, url)
 
-    def install(self, name):
+    def install(self, name, game_dir):
         if not isinstance(self.selected_viewer, FabricInfoViewer):
             QMessageBox.critical(
                 self,
@@ -158,6 +158,7 @@ class FabricSelector(GameSelector, Ui_FabricSelector):
             )
             return
         return lambda: install_fabric(
+            game_dir,
             name,
             self.original_version,
             self.selected_viewer.fabric_info["loader"]["version"],

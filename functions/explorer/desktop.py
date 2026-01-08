@@ -1,5 +1,7 @@
 import logging
 import traceback
+from fnmatch import fnmatch
+from typing import TypedDict
 
 from PyQt6.QtCore import QEvent, QSize, Qt
 from PyQt6.QtGui import QAction, QCursor
@@ -12,16 +14,24 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 from qfluentwidgets import FluentIcon, RoundMenu
+from result import is_err
 
 from fmcllib import show_qerrormessage
-from fmcllib.filesystem import listdir
+from fmcllib.filesystem import fileinfo, listdir
 from fmcllib.function import Function
+from fmcllib.setting import Setting
+
+
+class FunctionContextMenuAction(TypedDict):
+    type: str
+    program: str
+    args: list[str]
 
 
 class FunctionViewer(QWidget):
-    def __init__(self, function_path):
+    def __init__(self, function: Function):
         super().__init__()
-        self.function = Function(function_path)
+        self.function = function
         self.setLayout(QVBoxLayout())
 
         self.icon_label = QLabel()
@@ -39,7 +49,7 @@ class FunctionViewer(QWidget):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.showContextMenu)
 
-        self.setToolTip(self.function.display_name)
+        self.setToolTip(f"{self.function.display_name}({self.function.native_path})")
 
     def showContextMenu(self):
         menu = RoundMenu()
@@ -48,14 +58,38 @@ class FunctionViewer(QWidget):
         run_action.triggered.connect(self.run)
         menu.addAction(run_action)
 
+        action: FunctionContextMenuAction
+        for action in (
+            Setting()
+            .get("explorer.desktop.function_context_menu_actions")
+            .unwrap_or([])
+        ):
+            if not fnmatch(self.function.type, action["type"]):
+                continue
+            if is_err(result := fileinfo(action["program"])):
+                continue
+            function = Function(result.ok_value["native_paths"][0])
+
+            args = []
+            for arg in action["args"]:
+                args.append(arg.replace("${function_dir}", self.function.native_path))
+
+            action = QAction(function.icon, function.display_name)
+            action.triggered.connect(
+                lambda _, f=function, args=args: self.run(f, *args)
+            )
+            menu.addAction(action)
+
         menu.exec(QCursor.pos())
 
-    def run(self):
+    def run(self, function=None, *args):
+        if function == None:
+            function = self.function
         try:
-            self.function.run().unwrap()
+            function.run(*args).unwrap()
         except:
             show_qerrormessage(
-                self.tr("运行{path}时出错").format(path=self.function.path),
+                self.tr("运行{path}时出错").format(path=self.function.native_path),
                 traceback.format_exc(),
                 self,
             )
@@ -83,6 +117,9 @@ class Desktop(QTableWidget):
         self.horizontalHeader().setVisible(False)
         self.verticalHeader().setVisible(False)
 
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showContextMenu)
+
         self.cell_size = QSize(80, 80)
 
         self.refresh()
@@ -103,14 +140,17 @@ class Desktop(QTableWidget):
         col = 0
         for name in listdir("/desktop").unwrap_or([]):
             try:
-                item = self.item(row, col)
-                item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEnabled)
-                item_widget = FunctionViewer(f"/desktop/{name}")
-                self.setCellWidget(row, col, item_widget)
-                row += 1
-                if row == self.rowCount():
-                    row = 0
-                    col += 1
+                for native_path in fileinfo(f"/desktop/{name}").unwrap()[
+                    "native_paths"
+                ]:
+                    item = self.item(row, col)
+                    item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEnabled)
+                    item_widget = FunctionViewer(Function(native_path))
+                    self.setCellWidget(row, col, item_widget)
+                    row += 1
+                    if row == self.rowCount():
+                        row = 0
+                        col += 1
             except:
                 logging.error(f"无法显示功能'{name}'在桌面上:{traceback.format_exc()}")
 
@@ -119,3 +159,12 @@ class Desktop(QTableWidget):
             case QEvent.Type.Resize:
                 self.refresh()
         return super().event(a0)
+
+    def showContextMenu(self):
+        menu = RoundMenu()
+
+        refresh = QAction(FluentIcon.SYNC.icon(), self.tr("刷新"))
+        refresh.triggered.connect(self.refresh)
+        menu.addAction(refresh)
+
+        menu.exec(QCursor.pos())

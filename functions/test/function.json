@@ -2,6 +2,10 @@
     "type": "executable",
     "display_name": "测试",
     "translation_context": "Test",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "mdi.test-tube-empty"
+    },
     "command": {
         "template": "python"
     }

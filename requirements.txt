@@ -7,3 +7,4 @@ pyqt6_sip==13.10.2
 qtawesome==1.4.0
 Requests==2.32.5
 result==0.17.0
+watchdog==6.0.0

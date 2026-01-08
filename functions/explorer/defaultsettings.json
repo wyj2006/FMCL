@@ -13,5 +13,23 @@
         "default_value": true,
         "display_name": "嵌入窗口",
         "translation_context": "Explorer"
+    },
+    "explorer.desktop": {
+        "display_name": "桌面",
+        "translation_context": "Explorer"
+    },
+    "explorer.desktop.function_context_menu_actions": {
+        "default_value": [
+            {
+                "type": "game",
+                "program": "/functions/settingeditor",
+                "args": [
+                    "--setting-path",
+                    "${function_dir}/FMCL/settings.json"
+                ]
+            }
+        ],
+        "display_name": "功能的上下文菜单动作",
+        "translation_context": "Explorer"
     }
 }

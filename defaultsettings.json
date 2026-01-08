@@ -6,6 +6,9 @@
     "system.startups": {
         "default_value": [
             {
+                "path": "/functions/watcher"
+            },
+            {
                 "path": "/functions/explorer"
             }
         ],
@@ -40,15 +43,32 @@
         "translation_context": "Game"
     },
     "game.dirs": {
-        "default_value": [
-            ".minecraft"
-        ],
+        "default_value": [],
         "display_name": "游戏目录",
-        "translation_context": "Game"
+        "translation_context": "Game",
+        "description": "所有的游戏目录, 必须使用绝对路径"
     },
-    "game.cur_dir_index": {
-        "default_value": 0,
-        "display_name": "当前选择的游戏目录索引",
-        "translation_context": "Game"
+    "icon": {
+        "display_name": "图标",
+        "translation_context": "Game",
+        "scope": [
+            "game"
+        ]
+    },
+    "icon.path": {
+        "default_value": ":/image/grass@2x.png",
+        "display_name": "图标路径",
+        "translation_context": "Game",
+        "scope": [
+            "game"
+        ]
+    },
+    "isolate": {
+        "default_value": false,
+        "display_name": "版本隔离",
+        "translation_context": "Game",
+        "scope": [
+            "game"
+        ]
     }
 }

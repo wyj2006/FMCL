@@ -1,13 +1,13 @@
 import logging
 import traceback
 
-from PyQt6.QtCore import QMetaObject, pyqtSlot
+from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import QListView, QListWidgetItem, QWidget
 from qfluentwidgets import FluentIcon, ListWidget, NavigationItemPosition
 from ui_start import Ui_Start
 
 from fmcllib import show_qerrormessage
-from fmcllib.filesystem import listdir
+from fmcllib.filesystem import fileinfo, listdir
 from fmcllib.function import Function
 
 
@@ -17,22 +17,25 @@ class FunctionList(ListWidget):
         self.setObjectName("function_list")
         self.setResizeMode(QListView.ResizeMode.Adjust)
 
+        # item.toolTip到Function的映射
+        self.item_function: dict[str, Function] = {}
+
         for name in listdir("/start").unwrap_or([]):
             try:
-                function = Function(f"/start/{name}")
-                item = QListWidgetItem(function.icon, function.display_name)
-                item.setToolTip(name)
-                self.addItem(item)
+                for native_path in fileinfo(f"/start/{name}").unwrap()["native_paths"]:
+                    function = Function(native_path)
+                    item = QListWidgetItem(function.icon, function.display_name)
+                    item.setToolTip(f"{name}({native_path})")
+                    self.addItem(item)
+                    self.item_function[item.toolTip()] = function
             except:
                 logging.error(f"无法显示功能{name}:{traceback.format_exc()}")
 
         self.itemClicked.connect(self.on_function_list_itemClicked)
-        # QMetaObject.connectSlotsByName(self)
 
     @pyqtSlot(QListWidgetItem)
     def on_function_list_itemClicked(self, item: QListWidgetItem):
-        name = item.toolTip()
-        function = Function(f"/start/{name}")
+        function = self.item_function[item.toolTip()]
         try:
             function.run().unwrap()
         except:

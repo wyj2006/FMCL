@@ -105,6 +105,6 @@ class OriginalSelector(GameSelector, Ui_OriginalSelector):
         url = self.select_version_info["url"]
         return lambda: download_original(name, path, url)
 
-    def install(self, name):
+    def install(self, name, game_dir):
         url = self.select_version_info["url"]
-        return lambda: download_install_original(name, url)
+        return lambda: download_install_original(game_dir, name, url)

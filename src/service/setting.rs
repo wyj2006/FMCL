@@ -1,16 +1,15 @@
-use super::filesystem::{fcb_root, get_or_create_fcb};
 use super::{error_log_and_write, service_template, write_ok};
-use crate::fcb::FCB;
 use crate::setting_item::SettingItem;
 use base64::prelude::*;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
-use log::{error, warn};
+use log::error;
 use serde_json::{self, Map, Value, json};
 use std::collections::VecDeque;
 use std::default::Default;
 use std::fs;
 use std::io::Write;
+use std::path::Path;
 use std::sync::Mutex;
 
 lazy_static! {
@@ -197,7 +196,6 @@ pub fn save_settings() {
     let root: &mut SettingItem = &mut setting_root.lock().unwrap();
     for child in root.children.iter_mut() {
         let json_value = generate_setting_json(child, &String::new()).unwrap();
-        let parent: &mut FCB = &mut fcb_root.lock().unwrap();
         let save_path = match &child.value {
             Value::String(x) => x,
             _ => {
@@ -205,25 +203,17 @@ pub fn save_settings() {
                 continue;
             }
         };
-        let fcb = match get_or_create_fcb(parent, save_path) {
-            Ok(t) => t,
-            Err(e) => {
-                error!("{e}");
+        if let Some(parent_path) = Path::new(save_path).parent() {
+            if let Err(e) = fs::create_dir_all(parent_path) {
+                error!("Cannot create parent dirs for '{save_path}': {e}");
                 continue;
             }
-        };
-        let save_path = &fcb.native_paths[0];
-        if fcb.native_paths.len() > 1 {
-            warn!(
-                "{} has more than one save path, using the first one {save_path}",
-                child.name
-            );
         }
         if let Err(e) = fs::write(
             save_path,
             serde_json::to_string_pretty(&json_value).unwrap_or(json_value.to_string()),
         ) {
-            error!("{e}");
+            error!("Cannot save settings to '{save_path}': {e}");
             continue;
         }
     }

@@ -248,17 +248,13 @@ def parse_rules(rules: list[Rule]) -> bool:
     return True
 
 
-def download_install_original(name, json_url) -> Result[None, str]:
-    match fileinfo("/.minecraft"):
-        case Ok(t):
-            game_dir = t["native_paths"][-1]
-            install_original(
-                game_dir,
-                name,
-                download_original(
-                    name, os.path.join(game_dir, "versions", name), json_url
-                )["json_path"],
-            )
-            return Ok(None)
-        case Err(e):
-            return Err(e)
+def download_install_original(
+    game_dir: str, name: str, json_url: str
+) -> Result[None, str]:
+    install_original(
+        game_dir,
+        name,
+        download_original(name, os.path.join(game_dir, "versions", name), json_url)[
+            "json_path"
+        ],
+    )

@@ -124,6 +124,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(FluentIcon.SETTING.icon())
+        self.setWindowTitle(self.tr(f"设置: {path}"))
         self.splitter.setSizes([100, 300])
         # 因为可能存在MirrorCard, 为了减少麻烦, 关闭后就删除
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
@@ -169,7 +170,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_profile.clicked.connect(
-            lambda: Function("/functions/accountmanager").run()
+            lambda: Function.quick_run("/functions/accountmanager")
         )
 
         self.editinmanager_for_current = PushButton(self.tr("在账号管理器中编辑"))
@@ -184,7 +185,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_current.clicked.connect(
-            lambda: Function("/functions/accountmanager").run()
+            lambda: Function.quick_run("/functions/accountmanager").run()
         )
 
         self.editinmanager_for_servers = PushButton(self.tr("在账号管理器中编辑"))
@@ -199,7 +200,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_servers.clicked.connect(
-            lambda: Function("/functions/accountmanager").run()
+            lambda: Function.quick_run("/functions/accountmanager").run()
         )
 
         self.cards: dict[str, SettingCard] = {}

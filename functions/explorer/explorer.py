@@ -44,6 +44,7 @@ class Explorer(QStackedWidget):
         )
 
         self.desktop_button = TransparentToolButton(qta.icon("ph.desktop"))
+        self.desktop_button.setToolTip(self.tr("显示桌面"))
         self.desktop_button.clicked.connect(self.showDesktop)
 
         self.task_bar = TaskBar()

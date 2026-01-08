@@ -23,7 +23,7 @@ impl FCB {
             return Ok(());
         }
 
-        let mut opt_path: Option<String> = None;
+        let mut paths = vec![];
 
         for native_path in &self.native_paths {
             for result_entry in match fs::read_dir(native_path) {
@@ -35,16 +35,19 @@ impl FCB {
                     Err(_) => continue,
                 };
                 if entry.file_name() == name {
-                    opt_path = Some(String::from(entry.path().to_str().unwrap()));
-                    break;
+                    paths.push(entry.path().to_str().unwrap().to_string());
                 }
             }
         }
 
-        match opt_path {
-            Some(path) => match self.find(name) {
+        if paths.len() > 0 {
+            match self.find(name) {
                 Some(child) => {
-                    child.native_paths.push(path);
+                    for path in paths {
+                        if !child.native_paths.contains(&path) {
+                            child.native_paths.push(path);
+                        }
+                    }
                     return Ok(());
                 }
                 None => {
@@ -55,18 +58,17 @@ impl FCB {
                             .to_str()
                             .unwrap()
                             .to_string(),
-                        native_paths: vec![path],
+                        native_paths: paths,
                         children: vec![],
                     });
                     return Ok(());
                 }
-            },
-            None => {
-                return Err(format!(
-                    "{} not found",
-                    Path::new(&self.path).join(name).to_str().unwrap()
-                ));
             }
+        } else {
+            return Err(format!(
+                "{} not found",
+                Path::new(&self.path).join(name).to_str().unwrap()
+            ));
         }
     }
 
@@ -76,5 +78,20 @@ impl FCB {
         }
         self.children.push(fcb);
         Ok(())
+    }
+
+    /// 移除所有native_path存在的child
+    /// native_path存在的child可以重新加载, 但native_path不存在的child就不一定了
+    pub fn unload_all(&mut self) {
+        self.children.retain_mut(|child| {
+            child
+                .native_paths
+                .retain(|native_path| !Path::new(native_path).exists());
+            child.native_paths.len() > 0
+        });
+        //因为child的native_path变了, 所以它也需要unload
+        for child in &mut self.children {
+            child.unload_all();
+        }
     }
 }

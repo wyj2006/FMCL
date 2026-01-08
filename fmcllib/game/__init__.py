@@ -8,6 +8,7 @@ from result import Err, Ok, Result
 
 from fmcllib import VERSION
 from fmcllib.account import get_current_user
+from fmcllib.setting import Setting
 from fmcllib.task import ATTR_CURRENT_WORK, Task, modify_task
 
 from .fabric import (
@@ -142,7 +143,13 @@ def get_launch_args(game_path: str) -> Result[list[str], str]:
         replacement = {
             "${auth_player_name}": user_profile["player_name"],
             "${version_name}": game_name,
-            "${game_directory}": game_dir,  # TODO 版本隔离
+            "${game_directory}": (
+                game_dir
+                if not Setting(os.path.join(game_path, "FMCL", "settings.json"))
+                .get("isolate")
+                .unwrap_or(False)
+                else game_path
+            ),
             "${assets_root}": os.path.join(game_dir, "assets"),
             "${assets_index_name}": verion_json["assetIndex"]["id"],
             "${auth_uuid}": user_profile["uuid"],

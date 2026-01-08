@@ -10,7 +10,7 @@ from PyQt6.QtCore import (
     QtMsgType,
     qInstallMessageHandler,
 )
-from PyQt6.QtWidgets import QErrorMessage, QWidget
+from PyQt6.QtWidgets import QApplication, QErrorMessage, QWidget
 
 from .address import get_service_connection
 
@@ -50,6 +50,9 @@ def excepthook(*args):
 
 
 def show_qerrormessage(title: str, message: str, parent: QWidget = None):
+    if QApplication.instance() == None:
+        app = QApplication(sys.argv)
+
     w = QErrorMessage(parent)
     if parent == None:
         w.resize(500, 309)
