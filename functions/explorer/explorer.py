@@ -142,7 +142,7 @@ class Explorer(QStackedWidget):
         if titlebar != None:
             self.titlebar_layout.addWidget(titlebar)
         if self.titlebar_layout.count() > 0:
-            self.splitter.setSizes([900, 100])
+            self.splitter.setSizes([800, 200])
             self.splitter.setStyleSheet(
                 """QSplitter::handle{
                     background-color:rgb(235,235,235);

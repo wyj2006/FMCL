@@ -119,6 +119,18 @@ class Setting:
             case Err(e):
                 return Err(e)
 
+    def get_allkey(self) -> list[str]:
+        """获得所有值不为None的key"""
+        result = []
+        queue = [""]
+        while queue:
+            parent_key = queue.pop(0)
+            if self.get(parent_key).unwrap_or(None) != None:
+                result.append(parent_key)
+            for name in self.children(parent_key).unwrap_or([]):
+                queue.append(Setting.key_join(parent_key, name))
+        return result
+
     def get_allattr(self, key: str) -> Result[SettingAttrDict, str]:
         match self._get(key):
             case Ok(result):
@@ -126,10 +138,13 @@ class Setting:
             case Err(e):
                 return Err(e)
 
-    def get_attr(self, key: str, attr_name: str, default=None) -> Result[Any, str]:
+    def get_attr(self, key: str, attr_name: str) -> Result[Any, str]:
         match self._get(key):
             case Ok(result):
-                return Ok(result["attribute"].get(attr_name, default))
+                try:
+                    return Ok(result["attribute"][attr_name])
+                except KeyError as e:
+                    return Err(str(e))
             case Err(e):
                 return Err(e)
 

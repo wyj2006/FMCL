@@ -38,11 +38,11 @@ def update_game():
     for game_dir in Setting().get("game.dirs").unwrap_or([]):
         try:
             for game_name in os.listdir(os.path.join(game_dir, "versions")):
-                game_path = os.path.join(game_dir, "versions", game_name)
-                game_path = os.path.abspath(game_path)
+                instance_path = os.path.join(game_dir, "versions", game_name)
+                instance_path = os.path.abspath(instance_path)
 
                 # 更新默认设置
-                setting = Setting(os.path.join(game_path, "FMCL", "settings.json"))
+                setting = Setting(os.path.join(instance_path, "FMCL", "settings.json"))
                 if is_ok(result := fileinfo("/defaultsettings.json")):
                     for native_path in result.ok_value["native_paths"]:
                         for key, val in json.load(
@@ -55,6 +55,19 @@ def update_game():
                                     setting.add_or_update(key, attr, True)
                                 else:
                                     setting.add_or_update_attr(key, name, attr)
+
+                # 同步全局设置
+                global_setting = Setting()
+                for key in global_setting.get_allkey():
+                    # 值被更改了, 就不需要同步了
+                    if setting.get(key).unwrap_or(None) != setting.get_default(
+                        key
+                    ).unwrap_or(None):
+                        continue
+                    scope = global_setting.get_attr(key, "scope").unwrap_or(["global"])
+                    if not ("global" in scope and "game" in scope):
+                        continue
+                    setting.add_or_update(key, global_setting.get(key).unwrap())
 
                 # 更新function.json
                 json.dump(
@@ -71,14 +84,15 @@ def update_game():
                         "command": {
                             "template": "function",
                             "program": "/functions/gamemonitor",
-                            "args": ["--game-path", game_path],
+                            "args": ["--instance-path", instance_path],
                         },
                     },
                     open(
-                        os.path.join(game_path, "function.json"),
+                        os.path.join(instance_path, "function.json"),
                         mode="w",
                         encoding="utf-8",
                     ),
+                    indent=4,
                 )
         except:
             logging.error(f"无法更新'{game_dir}': {traceback.format_exc()}")

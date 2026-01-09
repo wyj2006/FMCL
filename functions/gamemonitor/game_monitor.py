@@ -1,6 +1,5 @@
 import logging
 import os
-import shutil
 import threading
 import traceback
 
@@ -8,24 +7,23 @@ import psutil
 import qtawesome as qta
 from PyQt6.QtCore import QProcess, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QLabel, QListWidgetItem, QWidget
+from PyQt6.QtWidgets import QLabel, QListWidgetItem, QMessageBox, QWidget
 from result import is_ok
 from ui_game_monitor import Ui_GameMonitor
 
 from fmcllib import show_qerrormessage
-from fmcllib.game import get_launch_args
+from fmcllib.game import get_launch_args, get_launch_program
 
 
 class GameMonitor(QWidget, Ui_GameMonitor):
     _launchArgsGot = pyqtSignal(list)
 
-    def __init__(self, game_path: str):
+    def __init__(self, instance_path: str):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(qta.icon("mdi6.rocket-launch-outline"))
-        self.setWindowTitle(f"{self.windowTitle()}: {game_path}")
-        # 一般位于 .minecraft/versions 文件夹下, 与game_dir含义不同
-        self.game_path = game_path
+        self.setWindowTitle(f"{self.windowTitle()}: {instance_path}")
+        self.instance_path = instance_path
 
         self.level_color = {
             "DEBUG": "#eee9e0",
@@ -47,7 +45,7 @@ class GameMonitor(QWidget, Ui_GameMonitor):
         self.process = QProcess()
         self.process.readyRead.connect(self.addLog)
         self.process.setWorkingDirectory(
-            os.path.abspath(os.path.join(game_path, "..", ".."))
+            os.path.abspath(os.path.join(instance_path, "..", ".."))
         )
 
         self._launchArgsGot.connect(self.launch)
@@ -55,18 +53,25 @@ class GameMonitor(QWidget, Ui_GameMonitor):
         threading.Thread(
             target=lambda: (
                 self._launchArgsGot.emit(args.ok_value)
-                if is_ok(args := get_launch_args(game_path))
+                if is_ok(args := get_launch_args(instance_path))
                 else show_qerrormessage(
-                    self.tr(f"无法运行: {game_path}"), args.err_value, self
+                    self.tr(f"无法运行: {instance_path}"), args.err_value, self
                 )
             ),
             daemon=True,
         ).start()
 
     def launch(self, args: list[str]):
-        logging.info(f"运行'{self.game_path}': {args}")
-        # TODO java路径
-        self.process.start(shutil.which("java"), args)
+        logging.info(f"运行'{self.instance_path}': {args}")
+        program = get_launch_program(self.instance_path)
+        if not program:
+            QMessageBox.critical(
+                None,  # 防止嵌入时出现bug
+                self.tr(f"无法运行'{self.instance_path}'"),
+                self.tr("没有合适的Java"),
+            )
+            return
+        self.process.start(program, args)
         self.process.waitForStarted()
 
         self.p_process = psutil.Process(self.process.processId())

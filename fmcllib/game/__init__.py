@@ -52,20 +52,28 @@ def merge(a: dict, b: dict):
     return a
 
 
-def get_launch_args(game_path: str) -> Result[list[str], str]:
-    with Task(f"获取运行参数: {game_path}") as task_id:
-        game_name = os.path.basename(game_path)
-        game_path = os.path.abspath(game_path)
-        game_dir = os.path.abspath(os.path.join(game_path, "..", ".."))
+def get_launch_program(instance_path: str):
+    Setting(os.path.join(instance_path, "FMCL", "settings.json")).get(
+        "game.java_path"
+    ).unwrap_or("java")
+
+
+def get_launch_args(instance_path: str) -> Result[list[str], str]:
+    with Task(f"获取运行参数: {instance_path}") as task_id:
+        game_name = os.path.basename(instance_path)
+        instance_path = os.path.abspath(instance_path)
+        game_dir = os.path.abspath(os.path.join(instance_path, "..", ".."))
 
         verion_json: VersionJson = json.load(
-            open(os.path.join(game_path, game_name + ".json"), encoding="utf-8")
+            open(os.path.join(instance_path, game_name + ".json"), encoding="utf-8")
         )
         if "inheritsFrom" in verion_json:
             verion_json = merge(
                 json.load(
                     open(
-                        os.path.join(game_path, verion_json["inheritsFrom"] + ".json"),
+                        os.path.join(
+                            instance_path, verion_json["inheritsFrom"] + ".json"
+                        ),
                         encoding="utf-8",
                     )
                 ),
@@ -115,10 +123,10 @@ def get_launch_args(game_path: str) -> Result[list[str], str]:
                 path = f"{package}/{name}/{version}/{name}-{version}.jar"
                 path = os.path.join(game_dir, "libraries", path)
             class_path.append(path)
-        class_path.append(os.path.join(game_path, game_name + ".jar"))
+        class_path.append(os.path.join(instance_path, game_name + ".jar"))
 
         modify_task(task_id, ATTR_CURRENT_WORK, "解压natives库文件")
-        natives_path = os.path.join(game_path, "natives")
+        natives_path = os.path.join(instance_path, "natives")
         for library in verion_json["libraries"]:
             if "rules" in library and not parse_rules(library["rules"]):
                 continue
@@ -145,10 +153,10 @@ def get_launch_args(game_path: str) -> Result[list[str], str]:
             "${version_name}": game_name,
             "${game_directory}": (
                 game_dir
-                if not Setting(os.path.join(game_path, "FMCL", "settings.json"))
+                if not Setting(os.path.join(instance_path, "FMCL", "settings.json"))
                 .get("isolate")
                 .unwrap_or(False)
-                else game_path
+                else instance_path
             ),
             "${assets_root}": os.path.join(game_dir, "assets"),
             "${assets_index_name}": verion_json["assetIndex"]["id"],

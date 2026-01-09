@@ -55,7 +55,7 @@ class FunctionViewer(QWidget):
         menu = RoundMenu()
 
         run_action = QAction(FluentIcon.PLAY.icon(), self.tr("运行"))
-        run_action.triggered.connect(self.run)
+        run_action.triggered.connect(lambda: self.run())
         menu.addAction(run_action)
 
         action: FunctionContextMenuAction

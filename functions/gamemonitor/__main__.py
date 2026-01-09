@@ -14,20 +14,20 @@ app = QApplication(sys.argv)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--game-path",
-    help=tr("GameMonitor", "要运行的游戏所在的目录(一般在.minecraft/versions文件夹下)"),
+    "--instance-path",
+    help=tr("GameMonitor", "游戏实例的路径"),
     default=None,
 )
 args = parser.parse_args()
 
-if args.game_path == None:
-    game_path = QFileDialog.getExistingDirectory()
-    if not game_path:
+if args.instance_path == None:
+    instance_path = QFileDialog.getExistingDirectory()
+    if not instance_path:
         exit()
 else:
-    game_path = args.game_path
+    instance_path = args.instance_path
 
-game_monitor = GameMonitor(game_path)
+game_monitor = GameMonitor(instance_path)
 game_monitor.installEventFilter(
     WindowSource(
         game_monitor,

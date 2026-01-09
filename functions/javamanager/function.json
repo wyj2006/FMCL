@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "Java管理器",
+    "translation_context": "JavaManager",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "fa6b.java"
+    },
+    "command": {
+        "template": "python"
+    }
+}

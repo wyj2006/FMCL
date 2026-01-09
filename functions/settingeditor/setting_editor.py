@@ -301,8 +301,8 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         if self.setting.get(key).unwrap() != None:
             getter = lambda: self.setting.get(key).unwrap()
             attr_getter = lambda attr_name, default=None: self.setting.get_attr(
-                key, attr_name, default
-            ).unwrap()
+                key, attr_name
+            ).unwrap_or(default)
             setter = lambda value: self.setting.set(key, value)
             attr_setter = lambda attr_name, value: self.setting.set_attr(
                 key, attr_name, value

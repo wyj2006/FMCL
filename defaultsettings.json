@@ -40,13 +40,27 @@
     },
     "game": {
         "display_name": "游戏",
-        "translation_context": "Game"
+        "translation_context": "Game",
+        "scope": [
+            "global",
+            "game"
+        ]
     },
     "game.dirs": {
         "default_value": [],
         "display_name": "游戏目录",
         "translation_context": "Game",
         "description": "所有的游戏目录, 必须使用绝对路径"
+    },
+    "game.java_path": {
+        "default_value": "",
+        "display_name": "Java路径",
+        "translation_context": "Game",
+        "description": "可以在 Java管理 功能中查看",
+        "scope": [
+            "global",
+            "game"
+        ]
     },
     "icon": {
         "display_name": "图标",
