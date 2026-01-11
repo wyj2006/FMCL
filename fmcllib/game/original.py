@@ -8,9 +8,8 @@ import threading
 from typing import Literal, TypedDict
 
 import requests
-from result import Err, Ok, Result
+from result import Result
 
-from fmcllib.filesystem import fileinfo
 from fmcllib.task import ATTR_CURRENT_WORK, Task, download, modify_task
 
 
@@ -251,7 +250,7 @@ def parse_rules(rules: list[Rule]) -> bool:
 def download_install_original(
     game_dir: str, name: str, json_url: str
 ) -> Result[None, str]:
-    install_original(
+    return install_original(
         game_dir,
         name,
         download_original(name, os.path.join(game_dir, "versions", name), json_url)[

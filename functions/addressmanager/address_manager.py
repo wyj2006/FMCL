@@ -12,9 +12,7 @@ class AddressManager(QWidget, Ui_AddressManager):
         self.setupUi(self)
         self.setWindowIcon(FluentIcon.GLOBE.icon())
 
-        self.viewer.setHorizontalHeaderLabels(
-            [self.tr("名称"), self.tr("地址"), self.tr("端口")]
-        )
+        self.viewer.setHorizontalHeaderLabels([self.tr("名称"), self.tr("地址")])
 
         self.refresh_timer = QTimer(self)
         self.refresh_timer.timeout.connect(self.refresh)
@@ -24,7 +22,7 @@ class AddressManager(QWidget, Ui_AddressManager):
         registered = getall_address()
         self.viewer.setRowCount(len(registered))
         for i, (name, value) in enumerate(registered.items()):
-            for j, v in enumerate([name, value["ip"], value["port"]]):
+            for j, v in enumerate([name, value["address"]]):
                 item = QTableWidgetItem(v)
                 item.setToolTip(v)
                 self.viewer.setItem(i, j, item)

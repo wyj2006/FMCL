@@ -1,5 +1,6 @@
-use super::{error_log_and_write, service_template, write_ok};
+use super::service_template;
 use crate::common::WORK_DIR;
+use crate::error::Error;
 use crate::service::filesystem::{fcb_root, get_fcb};
 use base64::prelude::*;
 use clap::{Parser, Subcommand};
@@ -8,7 +9,7 @@ use log::{info, warn};
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs;
-use std::io::Write;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::path::Path;
 use std::process::{Child, Command};
 use std::sync::Mutex;
@@ -30,27 +31,26 @@ enum SubCommand {
     GetallRunning,
 }
 
-pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<u128, String> {
-    let command = match serde_json::from_str(&match fs::read_to_string(
+pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<u128, Error> {
+    let json_path = Path::new(native_path).join("function.json");
+    let command = match serde_json::from_str(&fs::read_to_string(
         Path::new(native_path).join("function.json"),
-    ) {
-        Ok(t) => t,
-        Err(e) => return Err(e.to_string()),
-    }) {
+    )?) {
         Ok(t) => {
             if let Value::Object(t) = t {
                 if let Some(Value::Object(t)) = t.get("command") {
                     t.clone()
                 } else {
-                    return Err(format!(
-                        "Invalid key 'command' in function.json at {native_path}"
+                    return Err(Error::InvalidKey(
+                        "command".to_string(),
+                        json_path.to_str().unwrap().to_string(),
                     ));
                 }
             } else {
-                return Err(format!("Invalid function.json at {native_path}"));
+                return Err(Error::InvalidFile(json_path.to_str().unwrap().to_string()));
             }
         }
-        Err(e) => return Err(e.to_string()),
+        Err(e) => return Err(Error::from(e)),
     };
 
     let mut program = match command.get("program") {
@@ -85,7 +85,10 @@ pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<
             }
             "function" => {
                 let Some(Value::String(function_path)) = command.get("program") else {
-                    return Err(format!("Template 'function' needs provide key 'program'"));
+                    return Err(Error::TemplateKeyMissing(
+                        "function".to_string(),
+                        "program".to_string(),
+                    ));
                 };
                 let args = if let Some(Value::Array(t)) = command.get("args") {
                     let mut args: Vec<String> = Vec::new();
@@ -96,7 +99,7 @@ pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<
                     }
                     args
                 } else {
-                    return Err(format!("Invalid args: {:?}", command.get("args")));
+                    return Err(Error::InvalidArgs(format!("{:?}", command.get("args"))));
                 };
                 return run_function(
                     match get_fcb(&mut fcb_root.lock().unwrap(), function_path) {
@@ -117,7 +120,7 @@ pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<
     let child = Command::new(match program {
         Some(program) => program,
         None => {
-            return Err("Cannot find program to run".to_string());
+            return Err(Error::ProgramNotFound);
         }
     })
     .current_dir(cwd.clone())
@@ -167,67 +170,48 @@ pub fn kill_all_functions() {
 pub fn function_service() {
     service_template(
         "function".to_string(),
-        String::from("127.0.0.1:0"),
-        |_stream, _reader, writer, _buf, args| {
-            match ServiceCommand::try_parse_from({
-                let mut t = vec!["function".to_string()];
-                t.extend(args);
-                t
-            }) {
-                Ok(ServiceCommand { sub_command }) => match sub_command {
-                    SubCommand::Run { native_path, args } => {
-                        let json_str = match BASE64_STANDARD.decode(args) {
-                            Ok(t) => t,
-                            Err(e) => {
-                                error_log_and_write(writer, e.to_string());
-                                return;
-                            }
-                        };
-                        let json_str = String::from_utf8_lossy(&json_str);
-                        let args = match serde_json::from_str(&json_str) {
-                            Ok(args) => {
-                                if let Value::Array(t) = args {
-                                    let mut args: Vec<String> = Vec::new();
-                                    for arg in t {
-                                        if let Value::String(arg) = arg {
-                                            args.push(arg.clone());
-                                        }
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0)),
+        |_stream, _reader, _writer, _buf, args| match ServiceCommand::try_parse_from({
+            let mut t = vec!["function".to_string()];
+            t.extend(args);
+            t
+        })? {
+            ServiceCommand { sub_command } => match sub_command {
+                SubCommand::Run { native_path, args } => {
+                    let json_str = BASE64_STANDARD.decode(args)?;
+                    let json_str = String::from_utf8_lossy(&json_str);
+                    let args = match serde_json::from_str(&json_str) {
+                        Ok(args) => {
+                            if let Value::Array(t) = args {
+                                let mut args: Vec<String> = Vec::new();
+                                for arg in t {
+                                    if let Value::String(arg) = arg {
+                                        args.push(arg.clone());
                                     }
-                                    args
-                                } else {
-                                    error_log_and_write(
-                                        writer,
-                                        format!("Invalid external args: {}", json_str),
-                                    );
-                                    return;
                                 }
-                            }
-                            Err(e) => {
-                                error_log_and_write(writer, e.to_string());
-                                return;
-                            }
-                        };
-                        match run_function(&native_path, args.clone()) {
-                            Ok(_) => {
-                                write_ok(writer);
-                                info!("Run {native_path} with {args:?}");
-                            }
-                            Err(e) => {
-                                error_log_and_write(writer, e);
+                                args
+                            } else {
+                                return Err(Error::InvalidExtArgs(json_str.to_string()));
                             }
                         }
-                    }
-                    SubCommand::GetallRunning => {
-                        let mut data = json!({});
-                        for (timestamp, child) in running_functions.lock().unwrap().iter() {
-                            data[timestamp] = json!(child.id());
+                        Err(e) => return Err(Error::from(e)),
+                    };
+                    match run_function(&native_path, args.clone()) {
+                        Ok(_) => {
+                            info!("Run '{native_path}' with {args:?}");
+                            Ok(Some(json!({})))
                         }
-                        writer.write_all(data.to_string().as_bytes()).unwrap();
-                        writer.flush().unwrap();
+                        Err(e) => Err(e),
                     }
-                },
-                Err(e) => error_log_and_write(writer, e.to_string()),
-            };
+                }
+                SubCommand::GetallRunning => {
+                    let mut data = json!({});
+                    for (timestamp, child) in running_functions.lock().unwrap().iter() {
+                        data[timestamp] = json!(child.id());
+                    }
+                    Ok(Some(data))
+                }
+            },
         },
         |_stream| {
             remove_stopped_functions();

@@ -17,7 +17,7 @@ NAME_PREFIX = "@mirror"
 class MirrorRegisterInfo(TypedDict):
     name: str
     kind: Literal["window", "action", "widget"]
-    port: str
+    address: str
 
 
 class TcpSocket(QTcpSocket):
@@ -166,27 +166,23 @@ def gen_address_name(reginfo: MirrorRegisterInfo):
     return f"{NAME_PREFIX}{base64.b64encode(json.dumps(reginfo).encode()).decode()}"
 
 
-def register_mirror(name: str, kind: str, port: int):
-    reginfo: MirrorRegisterInfo = {"name": name, "kind": kind, "port": str(port)}
-    register_address(
-        gen_address_name(reginfo),
-        "127.0.0.1",
-        port,
-    )
+def register_mirror(name: str, kind: str, address: str) -> Result[None, str]:
+    reginfo: MirrorRegisterInfo = {"name": name, "kind": kind, "address": address}
+    return register_address(gen_address_name(reginfo), address)
 
 
 def unregister_mirror(name: str):
-    for i in getall_mirror().values():
-        if i["name"] == name:
-            unregister_address(gen_address_name(i))
-            break
+    mirrors = getall_mirror()
+    if name not in mirrors:
+        return
+    return unregister_address(gen_address_name(mirrors[name]))
 
 
 def get_mirror(name: str) -> Result[MirrorRegisterInfo, str]:
-    for i in getall_mirror().values():
-        if i["name"] == name:
-            return Ok(i)
-    return Err(f"Cannot found {name}")
+    mirrors = getall_mirror()
+    if name not in mirrors:
+        return Err(f"Cannot found {name}")
+    return Ok(mirrors[name])
 
 
 def getall_mirror() -> dict[str, MirrorRegisterInfo]:

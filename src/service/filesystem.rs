@@ -1,13 +1,14 @@
-use super::{error_log_and_write, service_template, write_ok};
+use super::service_template;
 use crate::common::WORK_DIR;
+use crate::error::Error;
 use crate::fcb::FCB;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
-use log::warn;
+use log::{info, warn};
 use serde_json::{self, json};
 use std::collections::HashMap;
 use std::fs;
-use std::io::Write;
+use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
 use std::path::Path;
 use std::sync::{Mutex, RwLock};
 use std::vec;
@@ -58,7 +59,7 @@ enum SubCommand {
     },
 }
 
-pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b String) -> Result<&'a mut FCB, String> {
+pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b String) -> Result<&'a mut FCB, Error> {
     //所有的FCB都引用于fcb_root, 而fcb_root本身就是带锁的
     let mut cur = unsafe { &mut *(root as *mut FCB) };
     let path = path.replace("\\", "/");
@@ -99,7 +100,7 @@ pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b String) -> Result<&'a mut FC
 pub fn get_or_create_fcb<'a, 'b>(
     root: &'a mut FCB,
     path: &'b String,
-) -> Result<&'a mut FCB, String> {
+) -> Result<&'a mut FCB, Error> {
     //所有的FCB都引用于fcb_root, 而fcb_root本身就是带锁的
     let mut cur: &mut FCB = unsafe { &mut *(root as *mut FCB) };
     let path = path.replace("\\", "/");
@@ -154,80 +155,68 @@ pub fn get_or_create_fcb<'a, 'b>(
     Ok(cur)
 }
 
-pub fn listdir(root: &mut FCB, path: &String) -> Result<Vec<String>, String> {
-    match get_fcb(root, path) {
-        Ok(t) => {
-            let mut names: Vec<String> = vec![];
-            //实际的子项
-            for native_path in &t.native_paths {
-                for result_entry in match fs::read_dir(native_path) {
-                    Ok(t) => t,
-                    Err(_) => {
-                        //有可能这个native_path不是目录
-                        continue;
-                    }
-                } {
-                    let entry = match result_entry {
-                        Ok(t) => t,
-                        Err(_) => {
-                            continue;
-                        }
-                    };
-                    let name = entry.file_name().to_str().unwrap().to_string();
-                    if !names.contains(&name) {
-                        names.push(name);
-                    }
-                }
+pub fn listdir(root: &mut FCB, path: &String) -> Result<Vec<String>, Error> {
+    let t = get_fcb(root, path)?;
+    let mut names: Vec<String> = vec![];
+    //实际的子项
+    for native_path in &t.native_paths {
+        for result_entry in match fs::read_dir(native_path) {
+            Ok(t) => t,
+            Err(_) => {
+                //有可能这个native_path不是目录
+                continue;
             }
-            //虚拟的子项
-            for child in &t.children {
-                let name = child.name.clone();
+        } {
+            let entry = match result_entry {
+                Ok(t) => t,
+                Err(_) => {
+                    continue;
+                }
+            };
+            let name = entry.file_name().to_str().unwrap().to_string();
+            if !names.contains(&name) {
+                names.push(name);
+            }
+        }
+    }
+    //虚拟的子项
+    for child in &t.children {
+        let name = child.name.clone();
+        if !names.contains(&name) {
+            names.push(name);
+        }
+    }
+    //挂载在上面的子项
+    if let Some(source_paths) = mount_table.read().unwrap().get(&t.path) {
+        for source_path in source_paths {
+            for name in listdir(root, source_path)? {
                 if !names.contains(&name) {
                     names.push(name);
                 }
             }
-            //挂载在上面的子项
-            if let Some(source_paths) = mount_table.read().unwrap().get(&t.path) {
-                for source_path in source_paths {
-                    for name in listdir(root, source_path)? {
-                        if !names.contains(&name) {
-                            names.push(name);
-                        }
-                    }
-                }
-            }
-            Ok(names)
         }
-        Err(e) => Err(e),
     }
+    Ok(names)
 }
 
-pub fn mount_native(root: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
-    match get_or_create_fcb(root, path) {
-        Ok(t) => {
-            if !t.native_paths.contains(native_path) {
-                t.native_paths.push(native_path.clone());
-            }
-            Ok(())
-        }
-        Err(e) => Err(e),
+pub fn mount_native(root: &mut FCB, path: &String, native_path: &String) -> Result<(), Error> {
+    let t = get_or_create_fcb(root, path)?;
+    if !t.native_paths.contains(native_path) {
+        t.native_paths.push(native_path.clone());
     }
+    Ok(())
 }
 
-pub fn unmount_native(root: &mut FCB, path: &String, native_path: &String) -> Result<(), String> {
-    match get_or_create_fcb(root, path) {
-        Ok(t) => {
-            if let Some(index) = t.native_paths.iter().position(|x| x == native_path) {
-                t.native_paths.remove(index);
-                t.unload_all(); //已有的children将要重新加载
-            }
-            Ok(())
-        }
-        Err(e) => Err(e),
+pub fn unmount_native(root: &mut FCB, path: &String, native_path: &String) -> Result<(), Error> {
+    let t = get_or_create_fcb(root, path)?;
+    if let Some(index) = t.native_paths.iter().position(|x| x == native_path) {
+        t.native_paths.remove(index);
+        t.unload_all(); //已有的children将要重新加载
     }
+    Ok(())
 }
 
-pub fn mount(root: &mut FCB, target_path: &String, source_path: &String) -> Result<(), String> {
+pub fn mount(root: &mut FCB, target_path: &String, source_path: &String) -> Result<(), Error> {
     let fcb = get_or_create_fcb(root, target_path)?;
     let mut mt = mount_table.write().unwrap();
     if let Some(t) = mt.get_mut(&fcb.path) {
@@ -238,7 +227,7 @@ pub fn mount(root: &mut FCB, target_path: &String, source_path: &String) -> Resu
     Ok(())
 }
 
-pub fn unmount(root: &mut FCB, target_path: &String, source_path: &String) -> Result<(), String> {
+pub fn unmount(root: &mut FCB, target_path: &String, source_path: &String) -> Result<(), Error> {
     let fcb = get_or_create_fcb(root, target_path)?;
     let mut mt = mount_table.write().unwrap();
     if let Some(t) = mt.get_mut(&fcb.path) {
@@ -250,120 +239,77 @@ pub fn unmount(root: &mut FCB, target_path: &String, source_path: &String) -> Re
     Ok(())
 }
 
-pub fn makedirs(root: &mut FCB, path: &String) -> Result<(), String> {
-    match get_or_create_fcb(root, path) {
-        Ok(t) => {
-            if t.native_paths.len() > 1 {
-                warn!(
-                    "More than one native path. Choose the first one: {}",
-                    t.native_paths[0]
-                );
-            }
-            let native_path = &t.native_paths[0];
-            if let Err(e) = fs::create_dir_all(native_path) {
-                return Err(e.to_string());
-            }
-        }
-        Err(e) => return Err(e),
+pub fn makedirs(root: &mut FCB, path: &String) -> Result<(), Error> {
+    let t = get_or_create_fcb(root, path)?;
+    if t.native_paths.len() > 1 {
+        warn!(
+            "More than one native path. Choose the first one: {}",
+            t.native_paths[0]
+        );
     }
+    let native_path = &t.native_paths[0];
+    fs::create_dir_all(native_path)?;
     Ok(())
 }
 
 pub fn filesystem_service() {
     service_template(
         "filesystem".to_string(),
-        String::from("127.0.0.1:0"),
-        |_stream, _reader, writer, _buf, args| {
+        SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0)),
+        |_stream, _reader, _writer, _buf, args| {
             let root = &mut fcb_root.lock().unwrap();
             match ServiceCommand::try_parse_from({
                 let mut t = vec!["filesystem".to_string()];
                 t.extend(args);
                 t
-            }) {
-                Ok(ServiceCommand { sub_command }) => match sub_command {
+            })? {
+                ServiceCommand { sub_command } => match sub_command {
                     SubCommand::Fileinfo { path } => {
-                        match get_fcb(root, &path) {
-                            Ok(t) => {
-                                writer
-                                    .write_all(
-                                        json!({
-                                            "name":t.name,
-                                            "path":t.path,
-                                            "native_paths":t.native_paths
-                                        })
-                                        .to_string()
-                                        .as_bytes(),
-                                    )
-                                    .unwrap();
-                                writer.flush().unwrap();
-                            }
-                            Err(e) => {
-                                error_log_and_write(writer, e);
-                            }
-                        };
+                        let t = get_fcb(root, &path)?;
+                        Ok(Some(json!({
+                            "name":t.name,
+                            "path":t.path,
+                            "native_paths":t.native_paths
+                        })))
                     }
-                    SubCommand::Listdir { path } => match listdir(root, &path) {
-                        Ok(t) => {
-                            writer
-                                .write_all(
-                                    json!( {
-                                        "names":t
-                                    })
-                                    .to_string()
-                                    .as_bytes(),
-                                )
-                                .unwrap();
-                            writer.flush().unwrap();
-                        }
-                        Err(e) => {
-                            error_log_and_write(writer, e);
-                        }
-                    },
+                    SubCommand::Listdir { path } => {
+                        let t = listdir(root, &path)?;
+                        Ok(Some(json!({
+                            "names":t
+                        })))
+                    }
                     SubCommand::MountNative { path, native_path } => {
-                        match mount_native(root, &path, &native_path) {
-                            Ok(_) => {
-                                write_ok(writer);
-                            }
-                            Err(e) => {
-                                error_log_and_write(writer, e);
-                            }
-                        }
+                        mount_native(root, &path, &native_path)?;
+                        info!("Mount '{native_path}' to '{path}'");
+                        Ok(Some(json!({})))
                     }
                     SubCommand::UnmountNative { path, native_path } => {
-                        match unmount_native(root, &path, &native_path) {
-                            Ok(_) => {
-                                write_ok(writer);
-                            }
-                            Err(e) => {
-                                error_log_and_write(writer, e);
-                            }
-                        }
+                        unmount_native(root, &path, &native_path)?;
+                        info!("Unmount '{native_path}' to '{path}'");
+                        Ok(Some(json!({})))
                     }
-                    SubCommand::Makedirs { path } => match makedirs(root, &path) {
-                        Ok(_) => {
-                            write_ok(writer);
-                        }
-                        Err(e) => {
-                            error_log_and_write(writer, e);
-                        }
-                    },
+                    SubCommand::Makedirs { path } => {
+                        makedirs(root, &path)?;
+                        Ok(Some(json!({})))
+                    }
                     SubCommand::Mount {
                         target_path,
                         source_path,
-                    } => match mount(root, &target_path, &source_path) {
-                        Ok(_) => write_ok(writer),
-                        Err(e) => error_log_and_write(writer, e),
-                    },
+                    } => {
+                        mount(root, &target_path, &source_path)?;
+                        info!("Mount '{source_path}' to '{target_path}'");
+                        Ok(Some(json!({})))
+                    }
                     SubCommand::Unmount {
                         target_path,
                         source_path,
-                    } => match unmount(root, &target_path, &source_path) {
-                        Ok(_) => write_ok(writer),
-                        Err(e) => error_log_and_write(writer, e),
-                    },
+                    } => {
+                        unmount(root, &target_path, &source_path)?;
+                        info!("Unmount '{source_path}' to '{target_path}'");
+                        Ok(Some(json!({})))
+                    }
                 },
-                Err(e) => error_log_and_write(writer, e.to_string()),
-            };
+            }
         },
         |_stream| {},
     );

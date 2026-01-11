@@ -1,5 +1,7 @@
 use std::{fs, path::Path};
 
+use crate::error::Error;
+
 #[derive(Debug)]
 pub struct FCB {
     pub name: String,
@@ -18,7 +20,7 @@ impl FCB {
         None
     }
 
-    pub fn load(&mut self, name: &str) -> Result<(), String> {
+    pub fn load(&mut self, name: &str) -> Result<(), Error> {
         if let Some(_) = self.find(name) {
             return Ok(());
         }
@@ -48,7 +50,7 @@ impl FCB {
                             child.native_paths.push(path);
                         }
                     }
-                    return Ok(());
+                    Ok(())
                 }
                 None => {
                     self.children.push(FCB {
@@ -61,23 +63,27 @@ impl FCB {
                         native_paths: paths,
                         children: vec![],
                     });
-                    return Ok(());
+                    Ok(())
                 }
             }
         } else {
-            return Err(format!(
-                "{} not found",
-                Path::new(&self.path).join(name).to_str().unwrap()
-            ));
+            Err(Error::FileNotFound(
+                Path::new(&self.path)
+                    .join(name)
+                    .to_str()
+                    .unwrap()
+                    .to_string(),
+            ))
         }
     }
 
-    pub fn create(&mut self, fcb: FCB) -> Result<(), String> {
+    pub fn create(&mut self, fcb: FCB) -> Result<(), Error> {
         if let Some(_) = self.find(&fcb.name) {
-            return Err(format!("{} already exists", fcb.name));
+            Err(Error::FileExists(fcb.name))
+        } else {
+            self.children.push(fcb);
+            Ok(())
         }
-        self.children.push(fcb);
-        Ok(())
     }
 
     /// 移除所有native_path存在的child

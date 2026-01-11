@@ -8,7 +8,12 @@ from PyQt6.QtCore import QEvent, pyqtSignal
 from PyQt6.QtWidgets import QApplication
 from result import is_ok
 
-from fmcllib.address import get_address, register_address, unregister_address
+from fmcllib.address import (
+    get_address,
+    parse_address,
+    register_address,
+    unregister_address,
+)
 
 
 class SingleApplication(QApplication):
@@ -20,13 +25,13 @@ class SingleApplication(QApplication):
         self.port_name = port_name
         if is_ok(result := get_address(port_name)):
             self.socket = socket.socket()
-            self.socket.connect(result.ok_value)
+            self.socket.connect(parse_address(result.ok_value))
             self.socket.sendall(port_name.encode())
             self.otherAppConfirmed.emit()
             return
         self.port = int.from_bytes(hashlib.md5(port_name.encode()).digest()[:2])
         logging.info(f"{port_name}监听端口{self.port}")
-        register_address(port_name, "127.0.0.1", self.port)
+        register_address(port_name, f"127.0.0.1:{self.port}")
 
         self.socket = socket.socket()
         self.socket.bind(("127.0.0.1", self.port))

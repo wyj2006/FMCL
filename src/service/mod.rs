@@ -13,7 +13,9 @@ pub use setting::setting_service;
 pub use task::task_service;
 
 use crate::common::parse_command;
+use crate::error::Error;
 use log::{debug, error, info};
+use serde_json::Value;
 use serde_json::json;
 use std::io::Write;
 use std::io::{self, BufRead, BufReader, BufWriter};
@@ -21,19 +23,6 @@ use std::marker::{Send, Sync};
 use std::net::{SocketAddr, TcpListener, TcpStream};
 use std::sync::Arc;
 use std::thread::Builder;
-
-pub fn error_log_and_write(writer: &mut BufWriter<&TcpStream>, e: String) {
-    error!("{e}");
-    writer
-        .write_all(json!({"error_msg":e}).to_string().as_bytes())
-        .unwrap();
-    writer.flush().unwrap();
-}
-
-pub fn write_ok(writer: &mut BufWriter<&TcpStream>) {
-    writer.write_all(json!({}).to_string().as_bytes()).unwrap();
-    writer.flush().unwrap();
-}
 
 pub fn check_conntection(address: &SocketAddr) -> bool {
     if let Ok(_) = TcpStream::connect(address) {
@@ -43,9 +32,15 @@ pub fn check_conntection(address: &SocketAddr) -> bool {
     }
 }
 
-pub fn service_template<T, E>(name: String, address: String, handler: T, on_disconnect: E)
+pub fn service_template<T, E>(name: String, address: SocketAddr, handler: T, on_disconnect: E)
 where
-    T: Fn(&TcpStream, &mut BufReader<&TcpStream>, &mut BufWriter<&TcpStream>, String, Vec<String>)
+    T: Fn(
+            &TcpStream,
+            &mut BufReader<&TcpStream>,
+            &mut BufWriter<&TcpStream>,
+            String,
+            Vec<String>,
+        ) -> Result<Option<Value>, Error>
         + Send
         + Sync
         + 'static,
@@ -53,11 +48,7 @@ where
 {
     let listener = TcpListener::bind(&address).unwrap();
     let local_addr = listener.local_addr().unwrap();
-    register_address(
-        &name,
-        &local_addr.ip().to_string(),
-        &local_addr.port().to_string(),
-    );
+    register_address(&name, local_addr);
     info!("Listening on {}", local_addr);
 
     let handler = Arc::new(handler);
@@ -91,7 +82,8 @@ where
                 continue;
             }
             connection_id = String::from(&buf[..buf.len() - 1]); //去除最后的\0
-            write_ok(&mut writer);
+            writer.write_all(json!({}).to_string().as_bytes()).unwrap();
+            writer.flush().unwrap();
         }
 
         Builder::new()
@@ -126,7 +118,21 @@ where
                     let args = parse_command(&buf);
                     debug!("Read: {buf:?} {args:?}");
 
-                    handler(&stream, &mut reader, &mut writer, buf, args);
+                    match handler(&stream, &mut reader, &mut writer, buf, args) {
+                        Ok(Some(t)) => {
+                            writer.write_all(t.to_string().as_bytes()).unwrap();
+                            writer.flush().unwrap();
+                        }
+                        Ok(None) => {}
+                        Err(e) => {
+                            writer
+                                .write_all(
+                                    json!({"error_msg":e.to_string()}).to_string().as_bytes(),
+                                )
+                                .unwrap();
+                            writer.flush().unwrap();
+                        }
+                    }
                 }
                 on_disconnect(&stream);
                 info!("Disconnected");

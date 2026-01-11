@@ -5,9 +5,8 @@ import time
 from typing import Literal, TypedDict
 
 import requests
-from result import Err, Ok, Result
+from result import Ok, Result
 
-from fmcllib.filesystem import fileinfo
 from fmcllib.task import ATTR_CURRENT_WORK, Task, download, modify_task
 
 
@@ -99,6 +98,7 @@ def install_fabric(
         version_json_path = os.path.join(game_dir, "versions", name, name + ".json")
         while not os.path.exists(version_json_path):
             time.sleep(1)
+
         r = requests.get(
             f"https://meta.fabricmc.net/v2/versions/loader/{original_version}/{loader_version}/profile/json"
         )

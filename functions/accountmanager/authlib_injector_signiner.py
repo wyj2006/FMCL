@@ -89,6 +89,7 @@ class AuthlibInjectorSignIner(QDialog, Ui_AuthlibInjectorSignIner):
                     self.setting,
                 )
             ):
+                # 传递错误信息而不是unwrap的错误信息
                 raise Exception(result.err_value)
             self.signin_state = SignInSuccess()
         except Exception as e:

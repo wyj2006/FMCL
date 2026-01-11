@@ -5,6 +5,8 @@ from PyQt6.QtNetwork import QHostAddress
 from PyQt6.QtWidgets import QApplication
 from result import Err, Ok
 
+from fmcllib.address import parse_address
+
 from .common import (
     MirrorRegisterInfo,
     TcpServer,
@@ -28,7 +30,11 @@ class Source(QObject):
         self.socket.dataReceived.connect(self.handleRecvData)
 
         self.name = name or str(self.socket.serverPort())
-        register_mirror(self.name, self.kind, self.socket.serverPort())
+        register_mirror(
+            self.name,
+            self.kind,
+            f"{self.socket.serverAddress().toString()}:{self.socket.serverPort()}",
+        ).unwrap()
 
         QApplication.instance().aboutToQuit.connect(self.deleteLater)
 
@@ -76,11 +82,11 @@ class Mirror:
                     time.sleep(0.1 + i / 10)
         else:
             raise Exception(f"{name}不存在")
-        self.port = int(self.reginfo["port"])
+        self.host, self.port = parse_address(self.reginfo["address"])
         self.kind = self.reginfo["kind"]
 
         self.socket = TcpSocket()
-        self.socket.connectToHost("127.0.0.1", self.port)
+        self.socket.connectToHost(self.host, self.port)
         self.socket.dataReceived.connect(self.handleRecvData)
         self.socket.connected.connect(lambda: self.socket.write(b"ready\0"))
 

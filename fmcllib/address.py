@@ -14,23 +14,25 @@ lock = threading.Lock()
 
 class AddressRegisterInfo(TypedDict):
     name: str
-    ip: str
-    port: str
+    address: str
+
+
+def parse_address(address: str) -> tuple[str, int]:
+    host, port = address.split(":")
+    return (host, int(port))
 
 
 @safe_function(lock)
-def get_address(name: str) -> Result[tuple[str, int], str]:
+def get_address(name: str) -> Result[str, str]:
     if name == "address":  # 自己的地址
-        return Ok(
-            ("127.0.0.1", int(os.environ.get("FMCL_ADDRESS_SERVER_PORT", "1024")))
-        )
+        return Ok(f"127.0.0.1:{os.environ.get("FMCL_ADDRESS_SERVER_PORT", "1024")}")
 
     client.sendall(f"get {name}\0".encode())
     result: AddressRegisterInfo = json.loads(client.recv(1024 * 1024))
 
     if "error_msg" in result:
         return Err(result["error_msg"])
-    return Ok((result["ip"], int(result["port"])))
+    return Ok(result["address"])
 
 
 def get_service_connection(service_name: str) -> socket.socket:
@@ -41,7 +43,7 @@ def get_service_connection(service_name: str) -> socket.socket:
     import __main__
 
     s = socket.socket()
-    s.connect(get_address(service_name).unwrap())
+    s.connect(parse_address(get_address(service_name).unwrap()))
     # 用来区分与服务的不同连接
     s.sendall(
         f"{getattr(sys,'service_connection_id',os.path.basename(os.path.dirname(__main__.__file__)))}\0".encode()
@@ -54,15 +56,19 @@ client = get_service_connection("address")
 
 
 @safe_function(lock)
-def register_address(name: str, ip: str, port: int):
-    client.sendall(f"register {name} {ip} {port}\0".encode())
-    client.recv(1024 * 1024)  # 忽略结果
+def register_address(name: str, address: str) -> Result[None, str]:
+    client.sendall(f"register {name} {address}\0".encode())
+    result = json.loads(client.recv(1024 * 1024))
+
+    if "error_msg" in result:
+        return Err(result["error_msg"])
+    return Ok(None)
 
 
 @safe_function(lock)
 def unregister_address(name: str):
     client.sendall(f"unregister {name}\0".encode())
-    client.recv(1024 * 1024)  # 忽略结果
+    client.recv(1024 * 1024)  # 一定是空字典
 
 
 @safe_function(lock)
