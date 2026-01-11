@@ -9,7 +9,7 @@ use crate::common::WORK_DIR;
 use crate::service::function::kill_all_functions;
 use anstyle::{AnsiColor, Color, Effects, RgbColor, Style};
 use chrono::Local;
-use log::{Level, error, info};
+use log::{Level, error, info, log_enabled};
 use service::address::remove_address_disconnected;
 use service::filesystem::{fcb_root, get_fcb};
 use service::function::{remove_stopped_functions, run_function, running_functions};
@@ -19,12 +19,14 @@ use service::{
     task_service,
 };
 use std::collections::hash_map::DefaultHasher;
-use std::fs::OpenOptions;
+use std::fs::{self, OpenOptions};
 use std::hash::{Hash, Hasher};
+use std::io::{BufReader, Cursor};
 use std::panic;
-use std::process;
+use std::path::Path;
 use std::thread;
 use std::time::Duration;
+use zip::ZipArchive;
 
 pub fn default_level_style(level: Level) -> Style {
     match level {
@@ -45,9 +47,12 @@ fn main() {
     .unwrap_or_else(|e| error!("Error setting Ctrl-C handler: {e}"));
 
     panic::set_hook(Box::new(|panic_info| {
-        error!("{panic_info}");
+        if log_enabled!(Level::Error) {
+            error!("{panic_info}");
+        } else {
+            println!("{panic_info}");
+        }
         kill_all_functions();
-        process::exit(1);
     }));
 
     fern::Dispatch::new()
@@ -85,7 +90,11 @@ fn main() {
                         .write(true)
                         .create(true)
                         .truncate(true)
-                        .open(WORK_DIR.to_string() + "/latest.log")
+                        .open({
+                            let log_path = Path::new(&WORK_DIR.to_string()).join("latest.log");
+                            fs::create_dir_all(&log_path.parent().unwrap()).unwrap();
+                            log_path
+                        })
                         .unwrap(),
                 )
                 .format(|out, message, record| {
@@ -100,6 +109,22 @@ fn main() {
         )
         .apply()
         .unwrap_or_else(|e| error!("Error setup logger: {e}"));
+
+    // release模式, 并且之前没有解压过
+    if cfg!(not(debug_assertions))
+        && match fs::read_dir(WORK_DIR.to_string()) {
+            // latest.log可能在这之前就创建了
+            Ok(t) => t.collect::<Vec<_>>().len() <= 1,
+            Err(_) => true,
+        }
+    {
+        let cursor = Cursor::new(include_bytes!("package.zip"));
+        let reader = BufReader::new(cursor);
+        let mut archive = ZipArchive::new(reader).unwrap();
+        archive
+            .extract(WORK_DIR.to_string())
+            .expect("Cannot extract packages");
+    }
 
     thread::Builder::new()
         .name("file system".to_string())

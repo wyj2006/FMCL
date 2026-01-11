@@ -15,9 +15,20 @@ from fmcllib.setting import SETTING_DEFAULT_PATH, Setting
 
 
 class SettingJsonHandler(FileSystemEventHandler):
-    def on_modified(self, _):
-        update_minecraft_mount()
-        update_game()
+    def on_created(self, event):
+        if event.src_path == SETTING_DEFAULT_PATH:
+            update_minecraft_mount()
+            update_game()
+
+    def on_modified(self, event):
+        if event.src_path == SETTING_DEFAULT_PATH:
+            update_minecraft_mount()
+            update_game()
+
+    def on_deleted(self, event):
+        if event.src_path == SETTING_DEFAULT_PATH:
+            update_minecraft_mount()
+            update_game()
 
 
 # 根据 SETTING_DEFAULT_PATH 里的内容更新 /.minecraft 的本地路径
@@ -99,7 +110,10 @@ update_minecraft_mount()
 update_game()
 
 observer = Observer()
-observer.schedule(SettingJsonHandler(), SETTING_DEFAULT_PATH)
+path = SETTING_DEFAULT_PATH
+while not os.path.exists(path):
+    path = os.path.dirname(path)
+observer.schedule(SettingJsonHandler(), path)
 observer.start()
 
 while True:

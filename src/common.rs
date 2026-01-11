@@ -18,6 +18,8 @@ pub static WORK_DIR: LazyLock<String> = LazyLock::new(|| {
         )
     } else {
         Path::new(env::current_exe().unwrap().to_str().unwrap())
+            .parent()
+            .unwrap()
             .join("FMCL")
             .to_str()
             .unwrap()

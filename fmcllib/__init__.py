@@ -33,7 +33,7 @@ class RemoteHandler(logging.Handler):
                 [
                     record.levelname.lower(),
                     f'"{record.threadName}"',
-                    base64.b64encode(msg.encode()).decode() + "\0",
+                    base64.b64encode(str(msg).encode()).decode() + "\0",
                 ]
             ).encode()
         )

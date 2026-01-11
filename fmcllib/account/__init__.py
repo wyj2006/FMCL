@@ -96,9 +96,8 @@ def get_account_head(profile: ProfileDict) -> QPixmap:
         case "https" | "http":
             cache_name = url.fileName()
             cache_path = None
-            if is_ok(makedirs("/temp/skin")) and is_ok(
-                result := fileinfo("/temp/skin")
-            ):
+            makedirs("/temp/skin")
+            if is_ok(result := fileinfo("/temp/skin")):
                 cache_path = os.path.join(
                     result.ok_value["native_paths"][0], cache_name + ".png"
                 )

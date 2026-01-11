@@ -1,11 +1,12 @@
 import os
+
 from PIL import Image
 
-root = os.path.abspath("..")
+os.chdir(os.path.join(os.path.dirname(__file__), ".."))
 
 
 def main():
-    path = os.path.join(root, "resources", "image", "icon.png")
+    path = os.path.join("resources", "image", "icon.png")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     img = Image.new("RGB", (16, 16))
     # 画背景
@@ -28,7 +29,7 @@ def main():
         img.putpixel((i, 7), color)
         img.putpixel((i, 8), color)
     img.save(path)
-    path = os.path.join(root, "resources", "icon", "fmcl.ico")
+    path = os.path.join("resources", "icon", "fmcl.ico")
     os.makedirs(os.path.dirname(path), exist_ok=True)
     img.save(path)
 

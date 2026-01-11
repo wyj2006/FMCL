@@ -10,7 +10,7 @@ from fmcllib.address import get_service_connection
 from fmcllib.filesystem import fileinfo
 from fmcllib.wrapper import safe_function, singleton
 
-SETTING_DEFAULT_PATH = fileinfo("/settings.json").unwrap()["native_paths"][0]
+SETTING_DEFAULT_PATH = fileinfo("/settings.json", True).unwrap()["native_paths"][0]
 client = get_service_connection("setting")
 lock = threading.Lock()
 

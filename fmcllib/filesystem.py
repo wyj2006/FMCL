@@ -21,8 +21,16 @@ class FileInfo(TypedDict):
 
 
 @safe_function(lock)
-def fileinfo(path: str) -> Result[FileInfo, str]:
-    client.sendall(f'fileinfo "{os.path.join(current_dir,path)}"\0'.encode())
+def fileinfo(path: str, create=False) -> Result[FileInfo, str]:
+    client.sendall(
+        (
+            " ".join(
+                ["fileinfo", f'"{os.path.join(current_dir,path)}"']
+                + (["--create"] if create else [])
+            )
+            + "\0"
+        ).encode()
+    )
     result = json.loads(client.recv(1024 * 1024))
 
     if "error_msg" in result:

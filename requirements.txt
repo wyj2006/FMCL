@@ -3,6 +3,7 @@ psutil==7.2.1
 PyQt6==6.10.1
 pyqt6_fluent_widgets==1.9.1
 pyqt6_frameless_window==0.7.4
+PyQt6-QScintilla==2.14.1
 pyqt6_sip==13.10.2
 qtawesome==1.4.0
 Requests==2.32.5

@@ -34,6 +34,8 @@ struct ServiceCommand {
 enum SubCommand {
     Fileinfo {
         path: String,
+        #[arg(long)]
+        create: bool,
     },
     Listdir {
         path: String,
@@ -189,7 +191,10 @@ pub fn listdir(root: &mut FCB, path: &String) -> Result<Vec<String>, Error> {
     //挂载在上面的子项
     if let Some(source_paths) = mount_table.read().unwrap().get(&t.path) {
         for source_path in source_paths {
-            for name in listdir(root, source_path)? {
+            for name in match listdir(root, source_path) {
+                Ok(t) => t,
+                Err(_) => continue,
+            } {
                 if !names.contains(&name) {
                     names.push(name);
                 }
@@ -264,8 +269,12 @@ pub fn filesystem_service() {
                 t
             })? {
                 ServiceCommand { sub_command } => match sub_command {
-                    SubCommand::Fileinfo { path } => {
-                        let t = get_fcb(root, &path)?;
+                    SubCommand::Fileinfo { path, create } => {
+                        let t = if create {
+                            get_or_create_fcb(root, &path)?
+                        } else {
+                            get_fcb(root, &path)?
+                        };
                         Ok(Some(json!({
                             "name":t.name,
                             "path":t.path,
