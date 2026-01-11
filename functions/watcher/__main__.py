@@ -10,6 +10,7 @@ from watchdog.observers import Observer
 
 from fmcllib.filesystem import fileinfo, mount_native, unmount_native
 from fmcllib.function import Function
+from fmcllib.game import Instance
 from fmcllib.setting import SETTING_DEFAULT_PATH, Setting
 
 
@@ -40,9 +41,10 @@ def update_game():
             for game_name in os.listdir(os.path.join(game_dir, "versions")):
                 instance_path = os.path.join(game_dir, "versions", game_name)
                 instance_path = os.path.abspath(instance_path)
+                instance = Instance(instance_path)
 
                 # 更新默认设置
-                setting = Setting(os.path.join(instance_path, "FMCL", "settings.json"))
+                setting = instance.setting
                 if is_ok(result := fileinfo("/defaultsettings.json")):
                     for native_path in result.ok_value["native_paths"]:
                         for key, val in json.load(
@@ -59,15 +61,12 @@ def update_game():
                 # 同步全局设置
                 global_setting = Setting()
                 for key in global_setting.get_allkey():
-                    # 值被更改了, 就不需要同步了
-                    if setting.get(key).unwrap_or(None) != setting.get_default(
-                        key
-                    ).unwrap_or(None):
-                        continue
                     scope = global_setting.get_attr(key, "scope").unwrap_or(["global"])
                     if not ("global" in scope and "game" in scope):
                         continue
-                    setting.add_or_update(key, global_setting.get(key).unwrap())
+                    # 如果该设置被更改了, 这句只会更改默认值
+                    # 否则会同时更改值和默认值
+                    setting.add_or_update(key, global_setting.get(key).unwrap(), True)
 
                 # 更新function.json
                 json.dump(
@@ -77,9 +76,7 @@ def update_game():
                         "translation_context": "Game",
                         "icon": {
                             "type": "QIcon",
-                            "value": setting.get("icon.path").unwrap_or(
-                                ":/image/grass@2x.png"
-                            ),
+                            "value": instance.icon_path,
                         },
                         "command": {
                             "template": "function",

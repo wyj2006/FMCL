@@ -1,5 +1,4 @@
 import threading
-import traceback
 
 from fabric_selector import FabricSelector
 from game_selector import GameSelector
@@ -9,8 +8,6 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import FluentIcon
 from ui_game_downloader import Ui_GameDownloader
 
-from fmcllib import show_qerrormessage
-from fmcllib.filesystem import fileinfo
 from fmcllib.function import Function
 from fmcllib.setting import Setting
 

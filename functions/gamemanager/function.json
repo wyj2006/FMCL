@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "游戏管理器",
+    "translation_context": "GameManager",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "mdi6.minecraft"
+    },
+    "command": {
+        "template": "python"
+    }
+}

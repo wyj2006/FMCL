@@ -73,6 +73,7 @@
         "default_value": ":/image/grass@2x.png",
         "display_name": "图标路径",
         "translation_context": "Game",
+        "description": "可以在 游戏管理器 功能中查看",
         "scope": [
             "game"
         ]

@@ -27,6 +27,14 @@
                     "--setting-path",
                     "${function_dir}/FMCL/settings.json"
                 ]
+            },
+            {
+                "type": "game",
+                "program": "/functions/gamemanager",
+                "args": [
+                    "--instance-path",
+                    "${function_dir}"
+                ]
             }
         ],
         "display_name": "功能的上下文菜单动作",
