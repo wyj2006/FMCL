@@ -10,10 +10,16 @@ from PyQt6.QtCore import (
     Qt,
 )
 from PyQt6.QtGui import QFont
-from PyQt6.QtWidgets import QApplication, QLabel, QSizePolicy, QSpacerItem, QWidget
+from PyQt6.QtWidgets import (
+    QApplication,
+    QLabel,
+    QSizePolicy,
+    QSpacerItem,
+    QVBoxLayout,
+    QWidget,
+)
 from qfluentwidgets import FluentIcon, PushButton, TransparentToolButton
-from settingcard import SettingCard, dispatch_card
-from settingcard.mirror_card import MirrorCard
+from settingcard import dispatch_card
 from ui_setting_editor import Ui_SettingEditor
 
 from fmcllib.function import Function
@@ -27,42 +33,36 @@ tr = QCoreApplication.translate
 class SettingItem:
     def __init__(self, setting: Setting, key: str, keyword="", parent=None):
         self.setting = setting
-        self.keyword = keyword
         self.parent: SettingItem = parent
-        self.children: list[SettingItem] = []
         self.key = key
-        self.children_loaded = False
+        self.children: list[SettingItem] = []
 
-    def load_children(self):
-        if self.children_loaded:
-            return
         for name in self.setting.children(self.key).unwrap():
-            if self.keyword not in name:
-                continue
-            self.children.append(
-                SettingItem(
-                    self.setting,
-                    # key是否为空对服务请求结果没有影响, 但对显示有影响
-                    Setting.key_join(self.key, name),
-                    self.keyword,
-                    self,
-                )
+            child = SettingItem(
+                self.setting,
+                Setting.key_join(self.key, name),
+                keyword,
+                self,
             )
-        self.children_loaded = True
+            # child的子节点都被过滤掉且child自身也被过滤掉
+            if (
+                not child.children
+                and keyword not in child.key
+                and keyword not in child.data(0)
+            ):
+                continue
+            self.children.append(child)
 
     def get_child(self, row):
-        self.load_children()
         if 0 <= row < len(self.children):
             return self.children[row]
         return None
 
     def children_count(self):
-        self.load_children()
         return len(self.children)
 
     def row(self):
         if self.parent:
-            self.parent.load_children()
             return self.parent.children.index(self)
         return 0
 
@@ -81,7 +81,6 @@ class SettingModel(QAbstractItemModel):
     def __init__(self, setting: Setting, keyword="", parent=None):
         super().__init__(parent)
         self.setting = setting
-        self.keyword = keyword
         self.root_item = SettingItem(setting, "", keyword)
 
     def getItem(self, index: QModelIndex) -> SettingItem:
@@ -119,6 +118,56 @@ class SettingModel(QAbstractItemModel):
         return None
 
 
+class KeyWidget(QWidget):
+    def __init__(self, key: str, setting: Setting):
+        super().__init__()
+        self.setting = setting
+        self.setLayout(QVBoxLayout())
+
+        attr = self.setting.get_allattr(key).unwrap()
+        context = attr.get("translation_context", "")
+
+        display_name = QLabel(text=tr(context, attr.get("display_name", key)))
+        display_name.setToolTip(key)
+
+        font = QFont()
+        names = key.split(".")
+        if len(names) == 1:
+            font.setBold(True)
+        font.setPointSize(max(10, 20 - len(names) * 2))
+        display_name.setFont(font)
+
+        self.layout().addWidget(display_name)
+
+        if "description" in attr:
+            description = QLabel(text=tr(context, attr["description"]))
+            font = QFont()
+            font.setPointSize(10)
+            description.setFont(font)
+            self.layout().addWidget(description)
+
+        if self.setting.get(key).unwrap() != None:
+            getter = lambda: self.setting.get(key).unwrap()
+            attr_getter = lambda attr_name, default=None: self.setting.get_attr(
+                key, attr_name
+            ).unwrap_or(default)
+            setter = lambda value: self.setting.set(key, value)
+            attr_setter = lambda attr_name, value: self.setting.set_attr(
+                key, attr_name, value
+            )
+            self.card = dispatch_card(getter, attr_getter, setter, attr_setter)
+            self.layout().addWidget(self.card)
+
+    def event(self, a0):
+        match a0.type():
+            case QEvent.Type.Close | QEvent.Type.DeferredDelete if hasattr(
+                self, "card"
+            ):
+                # 确保MirrorCard能正常释放
+                self.card.close()
+        return super().event(a0)
+
+
 class SettingEditor(QWidget, Ui_SettingEditor):
     def __init__(self, path=SETTING_DEFAULT_PATH):
         super().__init__()
@@ -131,19 +180,18 @@ class SettingEditor(QWidget, Ui_SettingEditor):
 
         self.path = path
         self.setting: Setting = Setting(path)
+        self.key_widgets: dict[str, KeyWidget] = {}
 
-        self.setSettingModel(SettingModel(self.setting))
+        self.navigation.setModel(SettingModel(self.setting))
 
         self.search_input.searchSignal.connect(
-            lambda keyword: self.setSettingModel(SettingModel(self.setting, keyword))
+            lambda keyword: self.setModel(SettingModel(self.setting, keyword))
         )
         self.search_input.clearSignal.connect(
-            lambda: self.setSettingModel(SettingModel(self.setting))
+            lambda: self.setModel(SettingModel(self.setting))
         )
         self.search_input.editingFinished.connect(
-            lambda: self.setSettingModel(
-                SettingModel(self.setting, self.search_input.text())
-            )
+            lambda: self.setModel(SettingModel(self.setting, self.search_input.text()))
         )
 
         self.navigation.clicked.connect(
@@ -185,7 +233,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_current.clicked.connect(
-            lambda: Function.quick_run("/functions/accountmanager").run()
+            lambda: Function.quick_run("/functions/accountmanager")
         )
 
         self.editinmanager_for_servers = PushButton(self.tr("在账号管理器中编辑"))
@@ -200,16 +248,28 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
         )
         self.editinmanager_for_servers.clicked.connect(
-            lambda: Function.quick_run("/functions/accountmanager").run()
+            lambda: Function.quick_run("/functions/accountmanager")
         )
 
-        self.cards: dict[str, SettingCard] = {}
-        self.key_labels: dict[str, QLabel] = {}
         self.genCards()
 
-    def setSettingModel(self, setting_model: SettingModel):
-        self.setting_model = setting_model
-        self.navigation.setModel(setting_model)
+    def setModel(self, model: SettingModel):
+        self.navigation.setModel(model)
+        # 查找所有没有被过滤掉的key
+        keys = []
+        queue = [QModelIndex()]
+        while queue:
+            parent = queue.pop(0)
+            if (p := parent.internalPointer()) != None:
+                keys.append(p.key)
+            for i in range(model.rowCount(parent)):
+                queue.append(model.index(i, 0, parent))
+
+        for key, widget in self.key_widgets.items():
+            if key in keys:
+                widget.show()
+            else:
+                widget.hide()
 
     def openJsonEditor(self):
         if hasattr(self, "json_editor"):
@@ -249,16 +309,16 @@ class SettingEditor(QWidget, Ui_SettingEditor):
                     1, self.editinjson_button, 0, Qt.AlignmentFlag.AlignRight
                 )
             case QEvent.Type.Close | QEvent.Type.DeferredDelete:
-                for i in self.cards.values():
-                    if isinstance(i, MirrorCard):
-                        i.close()
+                # 确保MirrorCard能正常释放
+                for i in self.key_widgets.values():
+                    i.close()
         return super().event(e)
 
     def naviagate(self, key: str):
-        if key not in self.key_labels:
+        if key not in self.key_widgets or not self.key_widgets[key].isVisible():
             return
-        label = self.key_labels[key]
-        pos = label.mapTo(self.edit_area_content, QPoint(0, 0))
+        widget = self.key_widgets[key]
+        pos = widget.mapTo(self.edit_area_content, QPoint(0, 0))
         self.edit_area.verticalScrollBar().setValue(pos.y())
 
     def genCards(self, key=""):
@@ -276,40 +336,9 @@ class SettingEditor(QWidget, Ui_SettingEditor):
             )
             return
 
-        attr = self.setting.get_allattr(key).unwrap()
-        context = attr.get("translation_context", "")
-
-        display_name = QLabel(text=tr(context, attr.get("display_name", key)))
-
-        font = QFont()
-        names = key.split(".")
-        if len(names) == 1:
-            font.setBold(True)
-        font.setPointSize(max(10, 20 - len(names) * 2))
-        display_name.setFont(font)
-
-        self.edit_layout.addWidget(display_name)
-        self.key_labels[key] = display_name
-
-        if "description" in attr:
-            description = QLabel(text=tr(context, attr["description"]))
-            font = QFont()
-            font.setPointSize(10)
-            description.setFont(font)
-            self.edit_layout.addWidget(description)
-
-        if self.setting.get(key).unwrap() != None:
-            getter = lambda: self.setting.get(key).unwrap()
-            attr_getter = lambda attr_name, default=None: self.setting.get_attr(
-                key, attr_name
-            ).unwrap_or(default)
-            setter = lambda value: self.setting.set(key, value)
-            attr_setter = lambda attr_name, value: self.setting.set_attr(
-                key, attr_name, value
-            )
-            card = dispatch_card(getter, attr_getter, setter, attr_setter)
-            self.edit_layout.addWidget(card)
-            self.cards[key] = card
+        widget = KeyWidget(key, self.setting)
+        self.key_widgets[key] = widget
+        self.edit_layout.addWidget(widget)
 
         QApplication.processEvents()
 

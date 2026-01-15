@@ -10,7 +10,7 @@ from .ui_dict_card import Ui_DictCard
 
 
 class DictCard(SettingCard, Ui_DictCard):
-    def _init(self):
+    def postInit(self):
         self.setupUi(self)
         self.add_button.setIcon(FluentIcon.ADD.icon())
 

@@ -10,7 +10,7 @@ from .setting_card import SettingCard
 
 
 class MirrorCard(SettingCard):
-    def _init(self):
+    def postInit(self):
         layout = QVBoxLayout()
         self.setLayout(layout)
 

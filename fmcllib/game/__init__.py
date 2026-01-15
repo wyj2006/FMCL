@@ -90,15 +90,16 @@ class Instance:
             open(os.path.join(self.path, self.name + ".json"), encoding="utf-8")
         )
         if "inheritsFrom" in verion_json:
-            verion_json = merge(
-                json.load(
-                    open(
-                        os.path.join(self.path, verion_json["inheritsFrom"] + ".json"),
-                        encoding="utf-8",
-                    )
-                ),
-                verion_json,
+            inherit_path = os.path.join(
+                self.path, verion_json["inheritsFrom"] + ".json"
             )
+            # 兼容其它启动器
+            # 不是所有的启动器都是像这样处理的
+            if os.path.exists(inherit_path):
+                verion_json = merge(
+                    json.load(open(inherit_path, encoding="utf-8")),
+                    verion_json,
+                )
         return verion_json
 
     @property

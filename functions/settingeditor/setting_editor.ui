@@ -31,6 +31,15 @@
       <property name="editTriggers">
        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
       </property>
+      <property name="indentation">
+       <number>16</number>
+      </property>
+      <property name="sortingEnabled">
+       <bool>false</bool>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
       <attribute name="headerVisible">
        <bool>false</bool>
       </attribute>
@@ -44,7 +53,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>130</width>
+         <width>69</width>
          <height>572</height>
         </rect>
        </property>

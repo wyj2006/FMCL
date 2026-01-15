@@ -5,7 +5,7 @@ from .setting_card import SettingCard
 
 
 class StringCard(SettingCard):
-    def _init(self):
+    def postInit(self):
         layout = QGridLayout()
         self.setLayout(layout)
 

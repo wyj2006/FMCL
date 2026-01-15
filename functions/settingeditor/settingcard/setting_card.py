@@ -25,7 +25,7 @@ class SettingCard(QWidget):
         self.valueChanged.connect(self.setter)
         self.attrChanged.connect(self.attr_setter)
 
-        self._init()
+        self.postInit()
 
-    def _init(self):
+    def postInit(self):
         """子类的初始化方法"""

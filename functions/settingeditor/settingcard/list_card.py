@@ -10,7 +10,7 @@ from .ui_list_card import Ui_ListCard
 
 
 class ListCard(SettingCard, Ui_ListCard):
-    def _init(self):
+    def postInit(self):
         self.setupUi(self)
         self.add_button.setIcon(FluentIcon.ADD.icon())
 
