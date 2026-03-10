@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "新闻",
+    "translation_context": "News",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "fa5.newspaper"
+    },
+    "command": {
+        "template": "python"
+    }
+}

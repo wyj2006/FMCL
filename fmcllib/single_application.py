@@ -1,4 +1,3 @@
-import hashlib
 import logging
 import socket
 import threading
@@ -29,12 +28,14 @@ class SingleApplication(QApplication):
             self.socket.sendall(port_name.encode())
             self.otherAppConfirmed.emit()
             return
-        self.port = int.from_bytes(hashlib.md5(port_name.encode()).digest()[:2])
+
+        self.socket = socket.socket()
+        self.socket.bind(("127.0.0.1", 0))
+
+        self.port = self.socket.getsockname()[1]
         logging.info(f"{port_name}监听端口{self.port}")
         register_address(port_name, f"127.0.0.1:{self.port}")
 
-        self.socket = socket.socket()
-        self.socket.bind(("127.0.0.1", self.port))
         self.socket.listen()
         # 使用线程处理, 这样可以允许main中有死循环
         handler = threading.Thread(target=self.listen, daemon=True)
