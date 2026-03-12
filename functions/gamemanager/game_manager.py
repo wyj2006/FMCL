@@ -1,6 +1,7 @@
 import logging
 
 import qtawesome as qta
+from modmanager import ModManager
 from overviewer import Overviewer
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtWidgets import QWidget
@@ -23,15 +24,16 @@ class GameManager(QWidget, Ui_GameManager):
 
         self.instance = Instance(instance_path)
 
-        self.overviewer = Overviewer(self.instance)
-        self.navigation_bar.addItem(
-            self.overviewer.objectName(),
-            self.overviewer.windowIcon(),
-            self.overviewer.windowTitle(),
-            lambda: self.stack.setCurrentWidget(self.overviewer),
-        )
-        self.stack.addWidget(self.overviewer)
-        self.stack.setCurrentWidget(self.overviewer)
+        item: QWidget
+        for item in [Overviewer(self.instance), ModManager(self.instance)]:
+            self.navigation_bar.addItem(
+                item.objectName(),
+                item.windowIcon(),
+                item.windowTitle(),
+                lambda _, item=item: self.stack.setCurrentWidget(item),
+            )
+            self.stack.addWidget(item)
+        self.stack.setCurrentIndex(0)
 
         match fileinfo("/functions/settingeditor"):
             case Ok(t):

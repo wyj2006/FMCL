@@ -79,7 +79,14 @@ class Overviewer(QWidget, Ui_Overviewer):
         for name, path in (
             (self.tr("游戏文件夹"), self.instance.path),
             (self.tr("设置文件"), self.instance.setting_path),
+            (
+                (self.tr("模组文件夹"), self.instance.mods_path)
+                if self.instance.support_mod and os.path.exists(self.instance.mods_path)
+                else ("", "")
+            ),
         ):
+            if not name:
+                continue
             open_button = PushButton(self.tr("打开"))
             open_button.clicked.connect(lambda _, path=path: os.startfile(path))
             self.browser.addGroup(
