@@ -1,0 +1,485 @@
+{
+    "launcher": [
+        {
+            "name": "Functional Minecraft Launcher",
+            "description": {
+                "value": "v${FMCL_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": {
+                "type": "QIcon",
+                "value": ":/image/icon.png"
+            },
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/wyj2006/FMCL"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        }
+    ],
+    "thanks": [
+        {
+            "name": "bangbang93",
+            "description": {
+                "value": "提供镜像源",
+                "translation_context": "About"
+            },
+            "icon": {
+                "type": "QIcon",
+                "value": ":/image/bangbang93.jpg"
+            },
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://bmclapidoc.bangbang93.com"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://afdian.net/a/bangbang93"
+                    },
+                    "name": {
+                        "value": "赞助",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "HMCL",
+            "description": {
+                "value": "提供技术帮助",
+                "translation_context": "About"
+            },
+            "icon": {
+                "type": "QIcon",
+                "value": ":/image/hmcl.png"
+            },
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://hmcl.huangyuhui.net/"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://afdian.net/a/huanghongxun"
+                    },
+                    "name": {
+                        "value": "赞助",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/huanghongxun/HMCL"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "PCL",
+            "description": {
+                "value": "提供技术帮助",
+                "translation_context": "About"
+            },
+            "icon": {
+                "type": "QIcon",
+                "value": ":/image/pcl.png"
+            },
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://afdian.net/a/LTCat"
+                    },
+                    "name": {
+                        "value": "赞助",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/Hex-Dragon/PCL2"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        }
+    ],
+    "dependences": [
+        {
+            "name": "Rust",
+            "description": {
+                "value": "rustc 1.91.1",
+                "translation_context": "About"
+            },
+            "icon": {
+                "type": "QIcon",
+                "value": ":/image/cropped-rust-lang-logo-black-300x300.webp"
+            },
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://rust-lang.org"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/rust-lang/rust"
+                    },
+                    "name": {
+                        "value": "Github",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Python",
+            "description": {
+                "value": "${Python_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": {
+                "type": "QIcon",
+                "value": ":/image/python-logo-only.png"
+            },
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://www.python.org"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/python/cpython"
+                    },
+                    "name": {
+                        "value": "Github",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Pillow",
+            "description": {
+                "value": "v${Pillow_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/python-pillow/Pillow"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "PyQt6",
+            "description": {
+                "value": "v${PyQt6_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "about_qt"
+                    },
+                    "name": {
+                        "value": "关于Qt",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://www.qt.io"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "PyQt6-Fluent-Widgets",
+            "description": {
+                "value": "v${PyQt6-Fluent-Widgets_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://afdian.net/a/zhiyiYo"
+                    },
+                    "name": {
+                        "value": "赞助",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://qfluentwidgets.com/"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/zhiyiYo/PyQt-Fluent-Widgets"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "PyQt6_Frameless_Window",
+            "description": {
+                "value": "v${PyQt6_Frameless_Window_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://afdian.net/a/zhiyiYo"
+                    },
+                    "name": {
+                        "value": "赞助",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/zhiyiYo/PyQt-Frameless-Window"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "PyQt6-QScintilla",
+            "description": {
+                "value": "v${PyQt6-QScintilla_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://www.scintilla.org/"
+                    },
+                    "name": {
+                        "value": "官网",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "requests",
+            "description": {
+                "value": "v${requests_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/psf/requests"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "toml",
+            "description": {
+                "value": "v${toml_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/uiri/toml"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "qtawesome",
+            "description": {
+                "value": "v${qtawesome_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/spyder-ide/qtawesome"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "psutil",
+            "description": {
+                "value": "v${psutil_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/giampaolo/psutil"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "watchdog",
+            "description": {
+                "value": "v${watchdog_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/gorakhargosh/watchdog"
+                    },
+                    "name": {
+                        "value": "GitHub",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "mutagen",
+            "description": {
+                "value": "v${mutagen_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://mutagen.readthedocs.org"
+                    },
+                    "name": {
+                        "value": "文档",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "result",
+            "description": {
+                "value": "v${result_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/rustedpy/result"
+                    },
+                    "name": {
+                        "value": "Github",
+                        "translation_context": "About"
+                    }
+                }
+            ]
+        }
+    ]
+}

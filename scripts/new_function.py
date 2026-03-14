@@ -24,24 +24,24 @@ with open(os.path.join(function_path, "__main__.py"), mode="w") as f:
         f.write(
             f"""import sys
 
-    from {module_name} import {class_name}
-    from PyQt6.QtWidgets import QApplication
+from {module_name} import {class_name}
+from PyQt6.QtWidgets import QApplication
 
-    import resources as _
-    from fmcllib.mirror import WindowSource
-    from fmcllib.window import Window
+import resources as _
+from fmcllib.mirror import WindowSource
+from fmcllib.window import Window
 
-    app = QApplication(sys.argv)
-    {module_name} = {class_name}()
-    {module_name}.installEventFilter(
-        WindowSource(
-            {module_name},
-            on_detach=lambda w: Window(w).show(),
-        )
+app = QApplication(sys.argv)
+{module_name} = {class_name}()
+{module_name}.installEventFilter(
+    WindowSource(
+        {module_name},
+        on_detach=lambda w: Window(w).show(),
     )
-    window = Window({module_name})
-    window.show()
-    sys.exit(app.exec())"""
+)
+window = Window({module_name})
+window.show()
+sys.exit(app.exec())"""
         )
     else:
         f.write(

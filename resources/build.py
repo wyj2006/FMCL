@@ -7,7 +7,7 @@ qrc = """<RCC>
 for root, dirs, files in os.walk("."):
     for file_name in files:
         name, ext = os.path.splitext(file_name)
-        if ext not in (".ico", ".png"):
+        if ext not in (".ico", ".png", ".jpg", ".webp"):
             continue
         qrc += f"    <file>{os.path.join(root,file_name)}</file>\n"
 

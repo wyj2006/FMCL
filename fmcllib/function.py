@@ -9,6 +9,7 @@ from typing import Literal, TypedDict
 import qtawesome as qta
 from PyQt6.QtCore import QCoreApplication
 from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
 from qfluentwidgets import FluentIcon
 from result import Err, Ok, Result
 
@@ -20,6 +21,11 @@ from fmcllib.wrapper import safe_function, singleton
 tr = QCoreApplication.translate
 client = get_service_connection("function")
 lock = threading.Lock()
+
+
+class IconDict(TypedDict):
+    type: str
+    value: str
 
 
 class FunctionInfoIcon(TypedDict):
@@ -116,14 +122,18 @@ class Function:
 
     @property
     def icon(self):
-        match self.function_info["icon"]["type"]:
-            case "default":
-                return QCoreApplication.instance().windowIcon()
-            case "FluentIcon":
-                return getattr(FluentIcon, self.function_info["icon"]["value"]).icon()
-            case "QIcon":
-                return QIcon(self.function_info["icon"]["value"])
-            case "QtAwesome":
-                return qta.icon(self.function_info["icon"]["value"])
-        logging.error(f"无法识别的function icon: {self.function_info['icon']}")
-        return QCoreApplication.instance().windowIcon()
+        return get_icon(self.function_info["icon"])
+
+
+def get_icon(icon_dict: IconDict):
+    match icon_dict["type"]:
+        case "default":
+            return QApplication.instance().windowIcon()
+        case "FluentIcon":
+            return getattr(FluentIcon, icon_dict["value"]).icon()
+        case "QIcon":
+            return QIcon(icon_dict["value"])
+        case "QtAwesome":
+            return qta.icon(icon_dict["value"])
+    logging.error(f"无法识别的function icon: {icon_dict}")
+    return QApplication.instance().windowIcon()

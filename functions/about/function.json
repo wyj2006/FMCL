@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "关于",
+    "translation_context": "About",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "INFO"
+    },
+    "command": {
+        "template": "python"
+    }
+}
