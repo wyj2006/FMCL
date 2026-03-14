@@ -480,6 +480,26 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "nbtlib",
+            "description": {
+                "value": "v${nbtlib_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/vberlier/nbtlib"
+                    },
+                    "name": {
+                        "value": "Github",
+                        "translation_context": "About"
+                    }
+                }
+            ]
         }
     ]
 }

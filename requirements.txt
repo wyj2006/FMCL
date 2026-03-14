@@ -1,5 +1,6 @@
 case_convert==1.1.0
 mutagen==1.47.0
+nbtlib==2.0.4
 Pillow==12.1.0
 psutil==7.2.1
 PyQt6==6.10.1

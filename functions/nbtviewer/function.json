@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "NBT查看器",
+    "translation_context": "NBTViewer",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "msc.preview"
+    },
+    "command": {
+        "template": "python"
+    }
+}
