@@ -500,6 +500,36 @@
                     }
                 }
             ]
+        },
+        {
+            "name": "javaproperties",
+            "description": {
+                "value": "v${javaproperties_VERSION}",
+                "translation_context": "About"
+            },
+            "icon": null,
+            "operators": [
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://github.com/jwodder/javaproperties"
+                    },
+                    "name": {
+                        "value": "Github",
+                        "translation_context": "About"
+                    }
+                },
+                {
+                    "action": {
+                        "type": "open_browser",
+                        "value": "https://javaproperties.readthedocs.io/en/stable/"
+                    },
+                    "name": {
+                        "value": "文档",
+                        "translation_context": "About"
+                    }
+                }
+            ]
         }
     ]
 }

@@ -11,31 +11,31 @@ from fmcllib.filesystem import fileinfo, listdir
 class FileSystemItem:
     def __init__(self, path, parent=None):
         self.parent: FileSystemItem = parent
-        self.children: list[FileSystemItem] = []
+        self._children: list[FileSystemItem] = []
         self.fileinfo = fileinfo(path).unwrap()
         self.path = self.fileinfo["path"]
         self.children_loaded = False
 
-    def load_children(self):
-        if self.children_loaded:
-            return
-        for name in listdir(self.path).unwrap():
-            self.children.append(FileSystemItem(os.path.join(self.path, name), self))
-        self.children_loaded = True
+    @property
+    def children(self):
+        if not self.children_loaded:
+            for name in listdir(self.path).unwrap():
+                self._children.append(
+                    FileSystemItem(os.path.join(self.path, name), self)
+                )
+            self.children_loaded = True
+        return self._children
 
     def get_child(self, row):
-        self.load_children()
         if 0 <= row < len(self.children):
             return self.children[row]
         return None
 
     def children_count(self):
-        self.load_children()
         return len(self.children)
 
     def row(self):
         if self.parent:
-            self.parent.load_children()
             return self.parent.children.index(self)
         return 0
 

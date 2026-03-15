@@ -104,3 +104,14 @@ def makedirs(path: str) -> Result[None, str]:
     if "error_msg" in result:
         return Err(result["error_msg"])
     return Ok(None)
+
+
+def is_dir(path: str) -> Result[bool, str]:
+    match fileinfo(path):
+        case Ok(t):
+            for native_path in t["native_paths"]:
+                if os.path.isdir(native_path):
+                    return Ok(True)
+            return Ok(False)
+        case Err(e):
+            return Err(e)

@@ -57,12 +57,14 @@ class WindowSource(WidgetSource):
                 name,
             ):
                 widget: QWidget = self.parent()
+                if not hasattr(widget, "titlebar_actions"):
+                    widget.titlebar_actions = []
                 if op == "add":
-                    widget.addAction(ActionMirror(name))
+                    widget.titlebar_actions.append(ActionMirror(name))
                 elif op == "remove":
-                    for action in widget.actions():
+                    for action in widget.titlebar_actions:
                         if isinstance(action, ActionMirror) and action.name == name:
-                            widget.removeAction(action)
+                            widget.titlebar_actions.remove(action)
                             action.deleteLater()
                             break
         return super()._handleRecvData(args)
@@ -71,7 +73,7 @@ class WindowSource(WidgetSource):
         super().detach(datas)
         try:
             self.titlebar_source.deleteLater()
-        except RuntimeError:
+        except:
             pass
 
 

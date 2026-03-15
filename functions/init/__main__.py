@@ -23,6 +23,7 @@ if is_ok(
         mount_native("/about.json", native_path)
 
 for name in listdir("/functions").unwrap_or([]):
+    mount("/helps", f"/functions/{name}/helps")
     if is_ok(
         result := fileinfo(
             f"/functions/{name}/defaultsettings.json",

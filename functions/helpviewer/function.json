@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "帮助",
+    "translation_context": "HelpViewer",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "HELP"
+    },
+    "command": {
+        "template": "python"
+    }
+}

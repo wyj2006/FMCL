@@ -4,7 +4,7 @@ from typing import Callable
 from PyQt6.QtCore import QEvent, QObject, Qt, QTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtNetwork import QAbstractSocket
-from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QApplication
 
 from .base import Mirror, Source
 from .common import event_to_command
@@ -70,6 +70,7 @@ class WidgetSource(Source):
         widget.show()  # 先让它正常显示一遍
         if self.on_detach:
             self.on_detach(widget)
+        QApplication.instance().processEvents()
         self.handleRecvData(follow_commands)  # 处理余下来的指令
 
 

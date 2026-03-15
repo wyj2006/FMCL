@@ -9,6 +9,8 @@ with ZipFile(os.path.join("src", "package.zip"), mode="w") as zip_file:
         glob("**/*.py", recursive=True)
         + glob("**/function.json", recursive=True)
         + glob("**/defaultsettings.json", recursive=True)
+        + glob("**/attribute.json", recursive=True)
+        + glob("**/*.qml", recursive=True)
     ) - set(
         glob(".minecraft/**", recursive=True)
         + glob("scripts/**", recursive=True)
@@ -16,5 +18,6 @@ with ZipFile(os.path.join("src", "package.zip"), mode="w") as zip_file:
         + glob("target/**", recursive=True)
         + glob("temp/**", recursive=True)
         + glob(".vscode/**", recursive=True)
+        + glob("functions/test/**", recursive=True)
     ):
         zip_file.write(file_path)
