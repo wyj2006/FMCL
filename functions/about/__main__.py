@@ -1,13 +1,13 @@
 import sys
 
 from about import About
-from PyQt6.QtWidgets import QApplication
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 about = About()
 about.installEventFilter(
     WindowSource(

@@ -1,13 +1,13 @@
 import sys
 
-from PyQt6.QtWidgets import QApplication
 from task_manager import TaskManager
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 task_manager = TaskManager()
 task_manager.installEventFilter(
     WindowSource(

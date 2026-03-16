@@ -4,7 +4,7 @@ from explorer import Explorer
 from PyQt6.QtGui import QIcon
 
 import resources as _
-from fmcllib.single_application import SingleApplication
+from fmcllib.application import SingleApplication
 from fmcllib.window import Window
 
 window = None

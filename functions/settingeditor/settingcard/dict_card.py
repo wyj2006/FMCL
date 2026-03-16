@@ -100,7 +100,7 @@ class DictCard(SettingCard, Ui_DictCard):
             self.pair[key] = value
 
         def attr_setter(attr_name, value):
-            self.pair[key][attr_name] = value
+            self.pair_attr[key][attr_name] = value
 
         card_header = CardHeader()
         card_header.label.setText(key)

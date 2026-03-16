@@ -2,13 +2,13 @@ import sys
 
 import __main__
 from game_downloader import GameDownloader
-from PyQt6.QtWidgets import QApplication
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 game_downloader = GameDownloader()
 game_downloader.installEventFilter(
     WindowSource(

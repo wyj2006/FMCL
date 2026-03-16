@@ -11,7 +11,6 @@ from PyQt6.QtCore import (
     QUrl,
     pyqtSlot,
 )
-from PyQt6.QtGui import QAction
 from PyQt6.QtQuickWidgets import QQuickWidget
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import FluentIcon
@@ -20,7 +19,7 @@ from ui_help_viewer import Ui_HelpViewer
 
 from fmcllib.filesystem import fileinfo, is_dir, listdir
 
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 
 
 class HelpItem:
@@ -43,7 +42,7 @@ class HelpItem:
             case Err(_):
                 attribute = {}
 
-        self.name = tr(
+        self.name = translate(
             attribute.get("translation_context", ""),
             attribute.get("display_name", self.name),
         )

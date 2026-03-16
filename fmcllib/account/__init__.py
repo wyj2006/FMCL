@@ -20,7 +20,7 @@ from .yggdrasil_api import (
 )
 
 DEFAULT_SKIN_PATH = ":/image/skin/wide/steve.png"
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 
 
 class SkinDict(TypedDict):
@@ -194,7 +194,7 @@ def refresh_account(profile: ProfileDict, setting=None) -> Result[None, str]:
             setting.set("account.profiles", t)
         case _:
             raise Err(
-                tr("Account", "未知的登录方式:{method}").format(
+                translate("Account", "未知的登录方式:{method}").format(
                     method=profile["method"]
                 )
             )

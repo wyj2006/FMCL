@@ -6,12 +6,12 @@ from PyQt6.QtWidgets import QApplication
 from setting_editor import SettingEditor
 
 import resources as _
+from fmcllib.application import SingleApplication
 from fmcllib.mirror import WindowSource
 from fmcllib.setting import SETTING_DEFAULT_PATH
-from fmcllib.single_application import SingleApplication
 from fmcllib.window import Window
 
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 
 window = None
 setting_editor = None
@@ -19,10 +19,12 @@ setting_editor = None
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--setting-path",
-    help=tr("SettingEditor", "设置文件路径"),
+    help=translate("SettingEditor", "设置文件路径"),
     default=SETTING_DEFAULT_PATH,
 )
-parser.add_argument("--key", help=tr("SettingEditor", "定位到指定的key"), default=None)
+parser.add_argument(
+    "--key", help=translate("SettingEditor", "定位到指定的key"), default=None
+)
 
 args = parser.parse_args()
 setting_path = args.setting_path

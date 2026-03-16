@@ -3,8 +3,8 @@ import sys
 from account_manager import AccountManager
 
 import resources as _
+from fmcllib.application import SingleApplication
 from fmcllib.mirror import WindowSource
-from fmcllib.single_application import SingleApplication
 from fmcllib.window import Window
 
 window = None

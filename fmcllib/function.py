@@ -18,7 +18,7 @@ from fmcllib.address import get_service_connection
 from fmcllib.filesystem import fileinfo, listdir
 from fmcllib.wrapper import safe_function, singleton
 
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 client = get_service_connection("function")
 lock = threading.Lock()
 
@@ -115,7 +115,7 @@ class Function:
 
     @property
     def display_name(self):
-        return tr(
+        return translate(
             self.function_info["translation_context"],
             self.function_info["display_name"],
         )

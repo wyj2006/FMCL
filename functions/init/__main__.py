@@ -24,6 +24,7 @@ if is_ok(
 
 for name in listdir("/functions").unwrap_or([]):
     mount("/helps", f"/functions/{name}/helps")
+    mount("/translations", f"/functions/{name}/translations")
     if is_ok(
         result := fileinfo(
             f"/functions/{name}/defaultsettings.json",
@@ -38,6 +39,8 @@ for name in listdir("/functions").unwrap_or([]):
     ):
         for native_path in result.ok_value["native_paths"]:
             mount_native("/about.json", native_path)
+
+mount("/translations", "/helps/translations")
 
 setting = Setting()
 if is_ok(result := fileinfo("/defaultsettings.json")):

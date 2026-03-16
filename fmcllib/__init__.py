@@ -14,7 +14,7 @@ from PyQt6.QtWidgets import QApplication, QErrorMessage, QWidget
 
 from .address import get_service_connection
 
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 VERSION = "4.0.0"
 
 
@@ -43,7 +43,7 @@ class RemoteHandler(logging.Handler):
 def excepthook(*args):
     sys.__excepthook__(*args)
     show_qerrormessage(
-        tr("FMCLLib", "出现严重错误"),
+        translate("FMCLLib", "出现严重错误"),
         "".join(traceback.format_exception(*args)).strip(),
     )
     exit(1)

@@ -31,7 +31,7 @@ import resources as _
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-app = QApplication(sys.argv)
+app=Application(sys.argv)
 {module_name} = {class_name}()
 {module_name}.installEventFilter(
     WindowSource(

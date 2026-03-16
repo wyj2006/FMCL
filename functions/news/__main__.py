@@ -1,13 +1,13 @@
 import sys
 
 from news import News
-from PyQt6.QtWidgets import QApplication
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 news = News()
 news.installEventFilter(
     WindowSource(

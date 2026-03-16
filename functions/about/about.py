@@ -18,7 +18,7 @@ from fmcllib import VERSION
 from fmcllib.filesystem import fileinfo
 from fmcllib.function import IconDict, get_icon
 
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 
 
 class NameDict(TypedDict):
@@ -109,4 +109,4 @@ def get_name(name_dict: NameDict):
                     value = value.replace(i.group(0), version(module_name))
         except:
             logging.error(f"无法替换'{i.group(0)}': \n{traceback.format_exc()}")
-    return tr(name_dict["translation_context"], value)
+    return translate(name_dict["translation_context"], value)

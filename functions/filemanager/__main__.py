@@ -1,13 +1,13 @@
 import sys
 
 from file_manager import FileManager
-from PyQt6.QtWidgets import QApplication
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 file_manager = FileManager()
 file_manager.installEventFilter(
     WindowSource(

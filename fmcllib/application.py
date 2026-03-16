@@ -1,9 +1,10 @@
 import logging
+import os
 import socket
 import threading
 import traceback
 
-from PyQt6.QtCore import QEvent, pyqtSignal
+from PyQt6.QtCore import QEvent, QTranslator, pyqtSignal
 from PyQt6.QtWidgets import QApplication
 from result import is_ok
 
@@ -13,9 +14,17 @@ from fmcllib.address import (
     register_address,
     unregister_address,
 )
+from fmcllib.filesystem import fileinfo, listdir
+from fmcllib.setting import Setting
 
 
-class SingleApplication(QApplication):
+class Application(QApplication):
+    def __init__(self, argv):
+        super().__init__(argv)
+        load_translations()
+
+
+class SingleApplication(Application):
     firstAppConfirmed = pyqtSignal()  # 这是第一个应用
     otherAppConfirmed = pyqtSignal()  # 这不是第一个应用
     otherAppRun = pyqtSignal()  # 其它应用运行
@@ -60,3 +69,24 @@ class SingleApplication(QApplication):
                 except:
                     pass
         return super().event(event)
+
+
+def load_translations():
+    app = QApplication.instance()
+    translators = []
+
+    lang = Setting().get("system.language").unwrap_or("zh_CN")
+    for name in listdir("/translations").unwrap_or([]):
+        if os.path.splitext(name)[1] != ".qm" or lang not in name:
+            continue
+        if not is_ok(result := fileinfo(f"/translations/{name}")):
+            continue
+        for native_path in result.ok_value["native_paths"]:
+            translator = QTranslator()
+            translators.append(translator)
+
+            if translator.load(native_path) and app.installTranslator(translator):
+                logging.info(f"已加载: {native_path}")
+            else:
+                logging.error(f"无法加载: {native_path}")
+    app.translators = translators

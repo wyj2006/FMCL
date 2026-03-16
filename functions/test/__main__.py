@@ -2,16 +2,12 @@ import sys
 import threading
 import time
 
-from PyQt6.QtWidgets import QApplication, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
 from qfluentwidgets import PushButton
 
 import resources as _
-from fmcllib.task import (
-    ATTR_CURRENT_WORK,
-    ATTR_PROGRESS,
-    Task,
-    modify_task,
-)
+from fmcllib.application import Application
+from fmcllib.task import ATTR_CURRENT_WORK, ATTR_PROGRESS, Task, modify_task
 
 
 class Test(QWidget):
@@ -44,7 +40,7 @@ class Test(QWidget):
             time.sleep(5)
 
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 test = Test()
 test.show()
 sys.exit(app.exec())

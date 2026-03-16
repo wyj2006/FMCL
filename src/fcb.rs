@@ -1,13 +1,55 @@
-use std::{fs, path::Path};
-
 use crate::error::Error;
+use std::{
+    collections::BTreeSet,
+    path::{Path, PathBuf},
+};
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, PartialOrd, Ord)]
+pub struct VPath(pub Vec<String>);
+
+impl VPath {
+    pub fn join<T>(&self, path: T) -> VPath
+    where
+        VPath: From<T>,
+    {
+        let mut buf = self.0.clone();
+        buf.extend(VPath::from(path).0);
+        VPath(buf)
+    }
+}
+
+impl ToString for VPath {
+    fn to_string(&self) -> String {
+        format!("/{}", self.0.join("/"))
+    }
+}
+
+impl From<&str> for VPath {
+    fn from(path: &str) -> VPath {
+        let mut buf = vec![];
+        for name in path.replace("\\", "/").split("/") {
+            if name == "" {
+                continue;
+            }
+            buf.push(name.to_string());
+        }
+        VPath(buf)
+    }
+}
+
+impl From<&String> for VPath {
+    fn from(value: &String) -> Self {
+        VPath::from(value.as_str())
+    }
+}
 
 #[derive(Debug)]
 pub struct FCB {
     pub name: String,
-    pub path: String,
-    pub native_paths: Vec<String>,
+    pub path: VPath,
+    pub native_paths: BTreeSet<PathBuf>,
     pub children: Vec<FCB>,
+    pub mount_paths: BTreeSet<VPath>,
 }
 
 impl FCB {
@@ -18,63 +60,6 @@ impl FCB {
             }
         }
         None
-    }
-
-    pub fn load(&mut self, name: &str) -> Result<(), Error> {
-        if let Some(_) = self.find(name) {
-            return Ok(());
-        }
-
-        let mut paths = vec![];
-
-        for native_path in &self.native_paths {
-            for result_entry in match fs::read_dir(native_path) {
-                Ok(t) => t,
-                Err(_) => continue,
-            } {
-                let entry = match result_entry {
-                    Ok(t) => t,
-                    Err(_) => continue,
-                };
-                if entry.file_name() == name {
-                    paths.push(entry.path().to_str().unwrap().to_string());
-                }
-            }
-        }
-
-        if paths.len() > 0 {
-            match self.find(name) {
-                Some(child) => {
-                    for path in paths {
-                        if !child.native_paths.contains(&path) {
-                            child.native_paths.push(path);
-                        }
-                    }
-                    Ok(())
-                }
-                None => {
-                    self.children.push(FCB {
-                        name: String::from(name),
-                        path: Path::new(&self.path)
-                            .join(name)
-                            .to_str()
-                            .unwrap()
-                            .to_string(),
-                        native_paths: paths,
-                        children: vec![],
-                    });
-                    Ok(())
-                }
-            }
-        } else {
-            Err(Error::FileNotFound(
-                Path::new(&self.path)
-                    .join(name)
-                    .to_str()
-                    .unwrap()
-                    .to_string(),
-            ))
-        }
     }
 
     pub fn create(&mut self, fcb: FCB) -> Result<(), Error> {

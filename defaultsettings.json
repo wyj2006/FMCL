@@ -16,6 +16,12 @@
         "translation_context": "System",
         "description": "在系统启动时需要运行的功能"
     },
+    "system.language": {
+        "default_value": "zh_CN",
+        "display_name": "语言",
+        "translation_context": "System",
+        "setting_card": "edit_with_lang_chooser"
+    },
     "account": {
         "display_name": "账号",
         "translation_context": "Account"

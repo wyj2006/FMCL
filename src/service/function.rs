@@ -10,7 +10,7 @@ use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::fs;
 use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
-use std::path::Path;
+use std::path::PathBuf;
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -31,34 +31,33 @@ enum SubCommand {
     GetallRunning,
 }
 
-pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<u128, Error> {
-    let json_path = Path::new(native_path).join("function.json");
-    let command = match serde_json::from_str(&fs::read_to_string(
-        Path::new(native_path).join("function.json"),
-    )?) {
-        Ok(t) => {
-            if let Value::Object(t) = t {
-                if let Some(Value::Object(t)) = t.get("command") {
-                    t.clone()
+pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<u128, Error> {
+    let json_path = native_path.join("function.json");
+    let command =
+        match serde_json::from_str(&fs::read_to_string(native_path.join("function.json"))?) {
+            Ok(t) => {
+                if let Value::Object(t) = t {
+                    if let Some(Value::Object(t)) = t.get("command") {
+                        t.clone()
+                    } else {
+                        return Err(Error::InvalidKey(
+                            "command".to_string(),
+                            json_path.to_str().unwrap().to_string(),
+                        ));
+                    }
                 } else {
-                    return Err(Error::InvalidKey(
-                        "command".to_string(),
-                        json_path.to_str().unwrap().to_string(),
-                    ));
+                    return Err(Error::InvalidFile(json_path.to_str().unwrap().to_string()));
                 }
-            } else {
-                return Err(Error::InvalidFile(json_path.to_str().unwrap().to_string()));
             }
-        }
-        Err(e) => return Err(Error::from(e)),
-    };
+            Err(e) => return Err(Error::from(e)),
+        };
 
     let mut program = match command.get("program") {
         Some(Value::String(program)) => Some(program.to_string()),
         _ => None,
     };
     let cwd = match command.get("cwd") {
-        Some(Value::String(cwd)) => cwd,
+        Some(Value::String(cwd)) => PathBuf::from(cwd),
         _ => native_path,
     };
     let mut envs = HashMap::new();
@@ -103,7 +102,7 @@ pub fn run_function(native_path: &String, external_args: Vec<String>) -> Result<
                 };
                 return run_function(
                     match get_fcb(&mut fcb_root.lock().unwrap(), function_path) {
-                        Ok(t) => &t.native_paths[0],
+                        Ok(t) => t.native_paths.first().unwrap().clone(),
                         Err(e) => return Err(e),
                     },
                     args,
@@ -196,7 +195,7 @@ pub fn function_service() {
                         }
                         Err(e) => return Err(Error::from(e)),
                     };
-                    match run_function(&native_path, args.clone()) {
+                    match run_function(PathBuf::from(&native_path), args.clone()) {
                         Ok(_) => {
                             info!("Run '{native_path}' with {args:?}");
                             Ok(Some(json!({})))

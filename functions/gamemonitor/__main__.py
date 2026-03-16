@@ -5,17 +5,18 @@ from game_monitor import GameMonitor
 from PyQt6.QtWidgets import QApplication, QFileDialog
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 
-tr = QApplication.translate
+translate = QApplication.translate
 
-app = QApplication(sys.argv)
+app = Application(sys.argv)
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--instance-path",
-    help=tr("GameMonitor", "游戏实例的路径"),
+    help=translate("GameMonitor", "游戏实例的路径"),
     default=None,
 )
 args = parser.parse_args()

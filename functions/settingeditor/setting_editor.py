@@ -1,6 +1,7 @@
 import json
 
 from json_editor import SettingJsonEditor
+from lang_chooser import LangChooser
 from PyQt6.QtCore import (
     QAbstractItemModel,
     QCoreApplication,
@@ -27,7 +28,7 @@ from fmcllib.mirror import SettingCardSource, WindowSource
 from fmcllib.setting import SETTING_DEFAULT_PATH, Setting
 from fmcllib.window import Window
 
-tr = QCoreApplication.translate
+translate = QCoreApplication.translate
 
 
 class SettingItem:
@@ -70,7 +71,7 @@ class SettingItem:
         attr = self.setting.get_allattr(self.key).unwrap_or({})
         match column:
             case 0:
-                return tr(
+                return translate(
                     attr.get("translation_context", ""),
                     attr.get("display_name", self.key.split(".")[-1]),
                 )
@@ -127,7 +128,7 @@ class KeyWidget(QWidget):
         attr = self.setting.get_allattr(key).unwrap()
         context = attr.get("translation_context", "")
 
-        display_name = QLabel(text=tr(context, attr.get("display_name", key)))
+        display_name = QLabel(text=translate(context, attr.get("display_name", key)))
         display_name.setToolTip(key)
 
         font = QFont()
@@ -140,7 +141,7 @@ class KeyWidget(QWidget):
         self.layout().addWidget(display_name)
 
         if "description" in attr:
-            description = QLabel(text=tr(context, attr["description"]))
+            description = QLabel(text=translate(context, attr["description"]))
             font = QFont()
             font.setPointSize(10)
             description.setFont(font)
@@ -249,6 +250,14 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         )
         self.editinmanager_for_servers.clicked.connect(
             lambda: Function.quick_run("/functions/accountmanager")
+        )
+
+        self.lang_chooser = LangChooser()
+        self.lang_chooser.installEventFilter(
+            SettingCardSource(
+                self.lang_chooser,
+                name="edit_with_lang_chooser",
+            )
         )
 
         self.genCards()

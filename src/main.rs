@@ -161,7 +161,7 @@ fn main() {
         &("/functions/init".to_string()),
     ) {
         Ok(t) => {
-            if let Err(e) = run_function(&t.native_paths[0], vec![]) {
+            if let Err(e) = run_function(t.native_paths.first().unwrap().clone(), vec![]) {
                 error!("Connot run init: {e}");
             }
         }
