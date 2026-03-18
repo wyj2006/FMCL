@@ -18,7 +18,7 @@ new_version_path = args.new_version_path
 
 app = QApplication([])
 try:
-    subprocess.run(["start", new_version_path], shell=True)
+    subprocess.run(["start", new_version_path, "--force-decompress"], shell=True)
 except:
     w = QErrorMessage()
     w.resize(500, 309)

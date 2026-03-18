@@ -9,6 +9,7 @@ use crate::service::function::kill_all_functions;
 use crate::service::utils::utils_service;
 use anstyle::{AnsiColor, Color, Effects, RgbColor, Style};
 use chrono::Local;
+use clap::Parser;
 use lazy_static::lazy_static;
 use log::{Level, error, info, log_enabled};
 use service::address::remove_address_disconnected;
@@ -35,6 +36,13 @@ lazy_static! {
     pub static ref force_quit: RwLock<bool> = RwLock::new(false);
 }
 
+#[derive(Parser)]
+struct Command {
+    ///强制解压
+    #[arg(long)]
+    pub force_decompress: bool,
+}
+
 pub fn default_level_style(level: Level) -> Style {
     match level {
         Level::Trace => AnsiColor::Cyan.on_default(),
@@ -46,6 +54,8 @@ pub fn default_level_style(level: Level) -> Style {
 }
 
 fn main() {
+    let command = Command::parse();
+
     ctrlc::set_handler(move || {
         info!("User interrupted");
         //没有正在运行的功能会自动退出
@@ -117,13 +127,18 @@ fn main() {
         .apply()
         .unwrap_or_else(|e| error!("Error setup logger: {e}"));
 
-    // release模式, 并且之前没有解压过
+    //只有Release模式才允许解压
     if cfg!(not(debug_assertions))
-        && match fs::read_dir(WORK_DIR.to_string()) {
-            // latest.log可能在这之前就创建了
-            Ok(t) => t.collect::<Vec<_>>().len() <= 1,
-            Err(_) => true,
-        }
+        && (
+            //要求强制解压
+            command.force_decompress==true
+            //之前没有解压过
+            || match fs::read_dir(WORK_DIR.to_string()) {
+                // latest.log可能在这之前就创建了
+                Ok(t) => t.collect::<Vec<_>>().len() <= 1,
+                Err(_) => true,
+            }
+        )
     {
         let cursor = Cursor::new(include_bytes!("package.zip"));
         let reader = BufReader::new(cursor);
