@@ -10,10 +10,10 @@ from .common import ATTR_CURRENT_WORK, ATTR_PROGRESS, Task, modify_task
 
 
 def download(url: str, path: str, parent_task_id=0, retry_times=16):
-    for i in range(retry_times):
-        try:
-            # 即使任务创建失败也正常下载
-            with Task("下载", parent_task_id) as task_id:
+    # 即使任务创建失败也正常下载
+    with Task("下载", parent_task_id) as task_id:
+        for i in range(retry_times):
+            try:
                 modify_task(task_id, ATTR_CURRENT_WORK, f"下载 '{url}' 到 '{path}'")
                 modify_task(task_id, ATTR_PROGRESS, 0)
 
@@ -27,7 +27,10 @@ def download(url: str, path: str, parent_task_id=0, retry_times=16):
                         file.write(chunk)
                         cur_size += len(chunk)
                         modify_task(task_id, ATTR_PROGRESS, cur_size / file_size)
-            break
-        except:
-            logging.error(f"重新下载'{url}': \n{traceback.format_exc()}")
-            time.sleep(uniform(1, 2**i))
+                break
+            except:
+                if i == retry_times - 1:
+                    raise
+                logging.error(f"需要重新下载'{url}': \n{traceback.format_exc()}")
+                modify_task(task_id, ATTR_CURRENT_WORK, f"等待重新下载")
+                time.sleep(uniform(1, 2**i) / 1000)

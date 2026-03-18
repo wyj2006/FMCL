@@ -25,9 +25,9 @@ with open(os.path.join(function_path, "__main__.py"), mode="w") as f:
             f"""import sys
 
 from {module_name} import {class_name}
-from PyQt6.QtWidgets import QApplication
 
 import resources as _
+from fmcllib.application import Application
 from fmcllib.mirror import WindowSource
 from fmcllib.window import Window
 

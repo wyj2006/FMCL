@@ -4,9 +4,8 @@
 <context>
     <name>System</name>
     <message>
-        <location filename="../../../temp/functions.watcher.function.json.py" line="2"/>
+        <location filename="..\..\..\temp\functions.watcher.function.json.py" line="2" />
         <source>Watcher</source>
         <translation>Watcher</translation>
     </message>
-</context>
-</TS>
+</context></TS>

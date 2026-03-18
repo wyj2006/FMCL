@@ -1,6 +1,6 @@
 use super::service_template;
-use crate::error::Error;
 use crate::setting_item::SettingItem;
+use anyhow::{Result, anyhow};
 use base64::prelude::*;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
@@ -55,7 +55,7 @@ enum SubCommand {
 pub fn get_settingitem<'a, 'b>(
     parent: &'a mut SettingItem,
     key: &'b String,
-) -> Result<&'a mut SettingItem, Error> {
+) -> Result<&'a mut SettingItem> {
     let mut cur = parent;
     for name in key.split(".") {
         if name == "" {
@@ -63,7 +63,7 @@ pub fn get_settingitem<'a, 'b>(
         }
         match cur.find(name) {
             Some(t) => cur = t,
-            None => return Err(Error::SettingNotExists(name.to_string(), key.to_string())),
+            None => return Err(anyhow!("'{name}' in '{key}' does not exist")),
         }
     }
     Ok(cur)
@@ -72,7 +72,7 @@ pub fn get_settingitem<'a, 'b>(
 pub fn get_or_create_settingitem<'a, 'b>(
     parent: &'a mut SettingItem,
     key: &'b String,
-) -> Result<&'a mut SettingItem, Error> {
+) -> Result<&'a mut SettingItem> {
     let mut cur = parent;
     for name in key.split(".") {
         if name == "" {
@@ -89,7 +89,7 @@ pub fn get_or_create_settingitem<'a, 'b>(
     Ok(cur)
 }
 
-pub fn list_children(parent: &mut SettingItem, key: &String) -> Result<Vec<String>, Error> {
+pub fn list_children(parent: &mut SettingItem, key: &String) -> Result<Vec<String>> {
     let t = get_settingitem(parent, key)?;
     let mut names: Vec<String> = vec![];
     //实际的子项
@@ -103,7 +103,7 @@ pub fn add_or_update_default_setting(
     parent: &mut SettingItem,
     key: &String,
     value: &Value,
-) -> Result<(), Error> {
+) -> Result<()> {
     let t = get_or_create_settingitem(parent, key)?;
     if t.value == t.default_value {
         //此时的值和默认值相同, 认为该设置项并没有更改
@@ -116,11 +116,7 @@ pub fn add_or_update_default_setting(
     Ok(())
 }
 
-pub fn add_or_update_setting(
-    parent: &mut SettingItem,
-    key: &String,
-    value: &Value,
-) -> Result<(), Error> {
+pub fn add_or_update_setting(parent: &mut SettingItem, key: &String, value: &Value) -> Result<()> {
     get_or_create_settingitem(parent, key)?.value = value.clone();
     Ok(())
 }
@@ -130,7 +126,7 @@ pub fn add_or_update_attr(
     key: &String,
     attr_name: &String,
     attr: &Value,
-) -> Result<(), Error> {
+) -> Result<()> {
     let t = get_or_create_settingitem(parent, key)?;
     let v = t.attribute.get_mut(key);
     match (v, attr) {
@@ -149,7 +145,7 @@ pub fn add_or_update_attr(
 }
 
 ///获得相对parent的路径为key的子孙节点(grandchild)的子节点组成的json value
-pub fn generate_setting_json(parent: &mut SettingItem, key: &String) -> Result<Value, Error> {
+pub fn generate_setting_json(parent: &mut SettingItem, key: &String) -> Result<Value> {
     let mut result = Map::new();
     let key_prefix = key; //grandchild相对于parent的路径
 

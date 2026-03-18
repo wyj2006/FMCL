@@ -4,25 +4,24 @@
 <context>
     <name>About</name>
     <message>
-        <location filename="../../../temp/functions.about.function.json.py" line="2"/>
-        <location filename="../about.ui" line="0"/>
+        <location filename="..\..\..\temp\functions.about.function.json.py" line="2" />
+        <location filename="..\about.ui" line="0" />
         <source>关于</source>
         <translation>About</translation>
     </message>
     <message>
-        <location filename="../about.ui" line="0"/>
+        <location filename="..\about.ui" line="0" />
         <source>启动器</source>
         <translation>Launcher</translation>
     </message>
     <message>
-        <location filename="../about.ui" line="0"/>
+        <location filename="..\about.ui" line="0" />
         <source>鸣谢</source>
         <translation>Thanks</translation>
     </message>
     <message>
-        <location filename="../about.ui" line="0"/>
+        <location filename="..\about.ui" line="0" />
         <source>依赖</source>
         <translation>Dependences</translation>
     </message>
-</context>
-</TS>
+</context></TS>

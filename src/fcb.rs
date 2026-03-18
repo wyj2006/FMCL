@@ -1,4 +1,4 @@
-use crate::error::Error;
+use anyhow::{Result, anyhow};
 use std::{
     collections::BTreeSet,
     path::{Path, PathBuf},
@@ -62,9 +62,9 @@ impl FCB {
         None
     }
 
-    pub fn create(&mut self, fcb: FCB) -> Result<(), Error> {
+    pub fn create(&mut self, fcb: FCB) -> Result<()> {
         if let Some(_) = self.find(&fcb.name) {
-            Err(Error::FileExists(fcb.name))
+            Err(anyhow!("'{}' already exists", fcb.name))
         } else {
             self.children.push(fcb);
             Ok(())

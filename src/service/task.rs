@@ -1,6 +1,6 @@
 use super::service_template;
-use crate::error::Error;
 use crate::tcb::{TCB, TaskId};
+use anyhow::anyhow;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::info;
@@ -46,7 +46,8 @@ enum Attribute {
     Progress { value: f64 },
     CurrentWork { value: String },
 }
-
+//TODO 支持取消
+//TODO 任务产生错误不自动移除, 需要用户手动移除
 pub fn task_service() {
     service_template(
         "task".to_string(),
@@ -83,7 +84,7 @@ pub fn task_service() {
                         if let Some(tcb) = tasks.get(&id) {
                             Ok(Some(json!(tcb)))
                         } else {
-                            Err(Error::TaskNotExists(id))
+                            Err(anyhow!("{id} does not exist"))
                         }
                     }
                     SubCommand::Getall => {
@@ -105,7 +106,7 @@ pub fn task_service() {
                             }
                             Ok(Some(json!({})))
                         } else {
-                            Err(Error::TaskNotExists(id))
+                            Err(anyhow!("{id} does not exist"))
                         }
                     }
                     SubCommand::Modify {
@@ -120,7 +121,7 @@ pub fn task_service() {
                             }
                             Ok(Some(json!({})))
                         } else {
-                            Err(Error::TaskNotExists(id))
+                            Err(anyhow!("{id} does not exist"))
                         }
                     }
                 },

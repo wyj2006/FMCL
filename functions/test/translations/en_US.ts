@@ -4,20 +4,19 @@
 <context>
     <name>Test</name>
     <message>
-        <location filename="../__main__.py" line="16"/>
-        <location filename="../../../temp/functions.test.function.json.py" line="2"/>
+        <location filename="..\__main__.py" line="16" />
+        <location filename="..\..\..\temp\functions.test.function.json.py" line="2" />
         <source>测试</source>
         <translation>Test</translation>
     </message>
     <message>
-        <location filename="../__main__.py" line="19"/>
+        <location filename="..\__main__.py" line="19" />
         <source>单任务</source>
         <translation>Single task</translation>
     </message>
     <message>
-        <location filename="../__main__.py" line="25"/>
+        <location filename="..\__main__.py" line="25" />
         <source>父子任务</source>
         <translation>Parent-child task</translation>
     </message>
-</context>
-</TS>
+</context></TS>

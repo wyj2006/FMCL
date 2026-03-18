@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anstyle = "1.0.13"
+anyhow = "1.0.102"
 base64 = "0.22.1"
 chrono = "0.4.41"
 clap = { version = "4.5.53", features = ["derive"] }
@@ -12,8 +13,10 @@ ctrlc = "3.5.0"
 fern = "0.7.1"
 lazy_static = "1.5.0"
 log = "0.4.27"
+semver = "1.0.27"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"
+ureq = { version = "3.2.0", features = ["json"] }
 zip = "7.0.0"
 
 [target.'cfg(windows)'.build-dependencies]

@@ -10,6 +10,12 @@
             },
             {
                 "path": "/functions/explorer"
+            },
+            {
+                "path": "/functions/updater",
+                "args": [
+                    "--quiet"
+                ]
             }
         ],
         "display_name": "启动项",

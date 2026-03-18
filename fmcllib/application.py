@@ -5,9 +5,12 @@ import threading
 import traceback
 
 from PyQt6.QtCore import QEvent, QTranslator, pyqtSignal
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 from result import is_ok
 
+import resources as _
+from fmcllib import VERSION
 from fmcllib.address import (
     get_address,
     parse_address,
@@ -21,6 +24,8 @@ from fmcllib.setting import Setting
 class Application(QApplication):
     def __init__(self, argv):
         super().__init__(argv)
+        self.setApplicationVersion(VERSION)
+        self.setWindowIcon(QIcon(":/icon/fmcl.ico"))
         load_translations()
 
 

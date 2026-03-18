@@ -4,9 +4,8 @@
 <context>
     <name>System</name>
     <message>
-        <location filename="../../../temp/functions.init.function.json.py" line="2"/>
+        <location filename="..\..\..\temp\functions.init.function.json.py" line="2" />
         <source>Init</source>
         <translation type="unfinished">Init</translation>
     </message>
-</context>
-</TS>
+</context></TS>

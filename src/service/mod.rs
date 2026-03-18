@@ -4,8 +4,10 @@ pub mod function;
 pub mod logging;
 pub mod setting;
 pub mod task;
+pub mod utils;
 
 pub use address::{address_service, register_address};
+use anyhow::Result;
 pub use filesystem::filesystem_service;
 pub use function::function_service;
 pub use logging::logging_service;
@@ -13,7 +15,6 @@ pub use setting::setting_service;
 pub use task::task_service;
 
 use crate::common::parse_command;
-use crate::error::Error;
 use log::{debug, error, info};
 use serde_json::Value;
 use serde_json::json;
@@ -40,7 +41,7 @@ where
             &mut BufWriter<&TcpStream>,
             String,
             Vec<String>,
-        ) -> Result<Option<Value>, Error>
+        ) -> Result<Option<Value>>
         + Send
         + Sync
         + 'static,

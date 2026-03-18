@@ -1,5 +1,4 @@
 mod common;
-mod error;
 mod fcb;
 mod service;
 mod setting_item;
@@ -7,8 +6,10 @@ mod tcb;
 
 use crate::common::WORK_DIR;
 use crate::service::function::kill_all_functions;
+use crate::service::utils::utils_service;
 use anstyle::{AnsiColor, Color, Effects, RgbColor, Style};
 use chrono::Local;
+use lazy_static::lazy_static;
 use log::{Level, error, info, log_enabled};
 use service::address::remove_address_disconnected;
 use service::filesystem::{fcb_root, get_fcb};
@@ -24,9 +25,15 @@ use std::hash::{Hash, Hasher};
 use std::io::{BufReader, Cursor};
 use std::panic;
 use std::path::Path;
+use std::sync::RwLock;
 use std::thread;
 use std::time::Duration;
 use zip::ZipArchive;
+
+lazy_static! {
+    ///是否强制退出, 并结束所有正在运行的功能
+    pub static ref force_quit: RwLock<bool> = RwLock::new(false);
+}
 
 pub fn default_level_style(level: Level) -> Style {
     match level {
@@ -156,6 +163,11 @@ fn main() {
         .spawn(task_service)
         .unwrap();
 
+    thread::Builder::new()
+        .name("utils".to_string())
+        .spawn(utils_service)
+        .unwrap();
+
     match get_fcb(
         &mut fcb_root.lock().unwrap(),
         &("/functions/init".to_string()),
@@ -172,8 +184,17 @@ fn main() {
 
     loop {
         thread::sleep(Duration::from_secs(1));
+
+        if let Ok(t) = force_quit.try_read()
+            && *t
+        {
+            kill_all_functions();
+            break;
+        }
+
         remove_address_disconnected(); //定期检测或者在断开与服务的连接时检查
         remove_stopped_functions();
+
         let mut could_quit = false;
         if let Ok(mutex) = running_functions.try_lock() {
             could_quit = mutex.len() == 0;

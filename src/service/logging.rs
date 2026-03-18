@@ -1,5 +1,3 @@
-use crate::error::Error;
-
 use super::service_template;
 use base64::prelude::*;
 use clap::Parser;
@@ -51,7 +49,7 @@ pub fn logging_service() {
                     );
                     Ok(Some(json!({})))
                 }
-                Err(e) => Err(Error::from(e)),
+                Err(e) => Err(e.into()),
             },
         },
         |_stream| {},

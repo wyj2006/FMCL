@@ -1,6 +1,5 @@
+use anyhow::{Result, anyhow};
 use serde_json::{Map, Value};
-
-use crate::error::Error;
 
 #[derive(Debug)]
 pub struct SettingItem {
@@ -45,9 +44,9 @@ impl SettingItem {
         None
     }
 
-    pub fn create(&mut self, settingitem: SettingItem) -> Result<(), Error> {
+    pub fn create(&mut self, settingitem: SettingItem) -> Result<()> {
         if let Some(_) = self.find(&settingitem.name) {
-            Err(Error::SettingItemExists(settingitem.name))
+            Err(anyhow!("'{}' already exists", settingitem.name))
         } else {
             self.children.push(settingitem);
             Ok(())

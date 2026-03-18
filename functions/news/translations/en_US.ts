@@ -4,18 +4,16 @@
 <context>
     <name>News</name>
     <message>
-        <location filename="../news.ui" line="0"/>
-        <location filename="../../../temp/functions.news.function.json.py" line="2"/>
+        <location filename="..\news.ui" line="0" />
+        <location filename="..\..\..\temp\functions.news.function.json.py" line="2" />
         <source>新闻</source>
         <translation>News</translation>
     </message>
-</context>
-<context>
+</context><context>
     <name>NewsEntry</name>
     <message>
-        <location filename="../news_entry.ui" line="0"/>
+        <location filename="..\news_entry.ui" line="0" />
         <source>NewsEntry</source>
         <translation>NewsEntry</translation>
     </message>
-</context>
-</TS>
+</context></TS>

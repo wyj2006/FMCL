@@ -1,6 +1,5 @@
-use crate::error::Error;
-
 use super::{check_conntection, service_template};
+use anyhow::anyhow;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::info;
@@ -77,7 +76,7 @@ pub fn address_service() {
                         address
                             .to_socket_addrs()?
                             .next()
-                            .ok_or(Error::InvalidAddress(address))?,
+                            .ok_or(anyhow!(format!("invalid address: {address}")))?,
                     );
                     Ok(Some(json!({})))
                 }
@@ -93,7 +92,7 @@ pub fn address_service() {
                             "address":registered[&name],
                         })))
                     } else {
-                        Err(Error::AddressNotExists(name))
+                        Err(anyhow!("address '{name}' does not exist"))
                     }
                 }
                 SubCommand::Getall => {

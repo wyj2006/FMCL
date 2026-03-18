@@ -14,11 +14,15 @@ with ZipFile(os.path.join("src", "package.zip"), mode="w") as zip_file:
         + glob("**/translations/**", recursive=True)
     ) - set(
         glob(".minecraft/**", recursive=True)
-        + glob("scripts/**", recursive=True)
+        + list(
+            set(glob("scripts/**", recursive=True))
+            - {os.path.join("scripts", "apply_update.py")}
+        )
         + [os.path.join("resources", "build.py")]
         + glob("target/**", recursive=True)
         + glob("temp/**", recursive=True)
         + glob(".vscode/**", recursive=True)
         + glob("**/functions/test/**", recursive=True)
+        + glob("**/*.ts", recursive=True)
     ):
         zip_file.write(file_path)

@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "更新",
+    "translation_context": "Updater",
+    "icon": {
+        "type": "FluentIcon",
+        "value": "UPDATE"
+    },
+    "command": {
+        "template": "python"
+    }
+}

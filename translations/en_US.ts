@@ -108,7 +108,7 @@
     <message>
         <location filename="../temp/defaultsettings.json.py" line="4"/>
         <source>在系统启动时需要运行的功能</source>
-        <translation type="unfinished">Functions that need to run when the system starts up</translation>
+        <translation>Functions that need to run when the system starts up</translation>
     </message>
     <message>
         <location filename="../temp/defaultsettings.json.py" line="5"/>
@@ -119,7 +119,7 @@
 <context>
     <name>WindowMirror</name>
     <message>
-        <location filename="../fmcllib/mirror/window.py" line="139"/>
+        <location filename="../fmcllib/mirror/window.py" line="140"/>
         <source>嵌入</source>
         <translation>Embed</translation>
     </message>

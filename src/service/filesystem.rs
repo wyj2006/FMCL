@@ -1,7 +1,7 @@
 use super::service_template;
 use crate::common::WORK_DIR;
-use crate::error::Error;
 use crate::fcb::{FCB, VPath};
+use anyhow::{Result, anyhow};
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::{info, warn};
@@ -61,7 +61,7 @@ enum SubCommand {
     },
 }
 
-pub fn load_child(root: &mut FCB, fcb: &mut FCB, name: &str) -> Result<(), Error> {
+pub fn load_child(root: &mut FCB, fcb: &mut FCB, name: &str) -> Result<()> {
     if let Some(_) = fcb.find(name) {
         return Ok(());
     }
@@ -103,11 +103,11 @@ pub fn load_child(root: &mut FCB, fcb: &mut FCB, name: &str) -> Result<(), Error
             }
         }
     } else {
-        Err(Error::FileNotFound(child_path.to_string()))
+        Err(anyhow!("'{}' not found", child_path.to_string()))
     }
 }
 
-pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b str) -> Result<&'a mut FCB, Error> {
+pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b str) -> Result<&'a mut FCB> {
     //所有的FCB都引用于fcb_root, 而fcb_root本身就是带锁的
     let mut cur = unsafe { &mut *(root as *mut FCB) };
     'outer: for name in &VPath::from(path).0 {
@@ -138,7 +138,7 @@ pub fn get_fcb<'a, 'b>(root: &'a mut FCB, path: &'b str) -> Result<&'a mut FCB, 
     Ok(cur)
 }
 
-pub fn get_or_create_fcb<'a, 'b>(root: &'a mut FCB, path: &'b str) -> Result<&'a mut FCB, Error> {
+pub fn get_or_create_fcb<'a, 'b>(root: &'a mut FCB, path: &'b str) -> Result<&'a mut FCB> {
     //所有的FCB都引用于fcb_root, 而fcb_root本身就是带锁的
     let mut cur: &mut FCB = unsafe { &mut *(root as *mut FCB) };
     'outer: for name in &VPath::from(path).0 {
@@ -177,7 +177,7 @@ pub fn get_or_create_fcb<'a, 'b>(root: &'a mut FCB, path: &'b str) -> Result<&'a
     Ok(cur)
 }
 
-pub fn listdir(root: &mut FCB, path: &str) -> Result<Vec<String>, Error> {
+pub fn listdir(root: &mut FCB, path: &str) -> Result<Vec<String>> {
     let t = get_fcb(unsafe { &mut *(root as *mut FCB) }, path)?;
     let mut names: Vec<String> = vec![];
     //实际的子项
@@ -223,20 +223,20 @@ pub fn listdir(root: &mut FCB, path: &str) -> Result<Vec<String>, Error> {
     Ok(names)
 }
 
-pub fn mount_native(root: &mut FCB, path: &str, native_path: &str) -> Result<(), Error> {
+pub fn mount_native(root: &mut FCB, path: &str, native_path: &str) -> Result<()> {
     let t = get_or_create_fcb(root, path)?;
     t.native_paths.insert(PathBuf::from(native_path));
     Ok(())
 }
 
-pub fn unmount_native(root: &mut FCB, path: &str, native_path: &str) -> Result<(), Error> {
+pub fn unmount_native(root: &mut FCB, path: &str, native_path: &str) -> Result<()> {
     let t = get_or_create_fcb(root, path)?;
     t.native_paths.remove(&PathBuf::from(native_path));
     t.unload_all(); //已有的children将要重新加载
     Ok(())
 }
 
-pub fn mount(root: &mut FCB, path: &str, mount_path: &str) -> Result<(), Error> {
+pub fn mount(root: &mut FCB, path: &str, mount_path: &str) -> Result<()> {
     let t = get_or_create_fcb(unsafe { &mut *(root as *mut FCB) }, &path)?;
     if !collect_mount_paths(root, t)?.contains(&VPath::from(mount_path)) {
         t.mount_paths.insert(VPath::from(mount_path));
@@ -244,14 +244,14 @@ pub fn mount(root: &mut FCB, path: &str, mount_path: &str) -> Result<(), Error> 
     Ok(())
 }
 
-pub fn unmount(root: &mut FCB, path: &str, mount_path: &str) -> Result<(), Error> {
+pub fn unmount(root: &mut FCB, path: &str, mount_path: &str) -> Result<()> {
     let t = get_or_create_fcb(root, path)?;
     t.mount_paths.remove(&VPath::from(mount_path));
     t.unload_all();
     Ok(())
 }
 
-pub fn makedirs(root: &mut FCB, path: &str) -> Result<(), Error> {
+pub fn makedirs(root: &mut FCB, path: &str) -> Result<()> {
     let t = get_or_create_fcb(root, path)?;
     if t.native_paths.len() > 1 {
         warn!(
@@ -264,7 +264,7 @@ pub fn makedirs(root: &mut FCB, path: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn collect_mount_paths(root: &mut FCB, fcb: &FCB) -> Result<BTreeSet<VPath>, Error> {
+pub fn collect_mount_paths(root: &mut FCB, fcb: &FCB) -> Result<BTreeSet<VPath>> {
     let mut paths = fcb.mount_paths.clone();
     for mount_path in &fcb.mount_paths {
         let Ok(t) = get_fcb(unsafe { &mut *(root as *mut FCB) }, &mount_path.to_string()) else {
@@ -276,7 +276,7 @@ pub fn collect_mount_paths(root: &mut FCB, fcb: &FCB) -> Result<BTreeSet<VPath>,
 }
 
 //获得fcb对应的native_paths, 包括挂载在它上面的
-pub fn collect_native_paths(root: &mut FCB, fcb: &FCB) -> Result<BTreeSet<PathBuf>, Error> {
+pub fn collect_native_paths(root: &mut FCB, fcb: &FCB) -> Result<BTreeSet<PathBuf>> {
     let mut paths = fcb.native_paths.clone();
     for mount_path in &fcb.mount_paths {
         let Ok(t) = get_fcb(unsafe { &mut *(root as *mut FCB) }, &mount_path.to_string()) else {

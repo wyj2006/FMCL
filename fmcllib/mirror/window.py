@@ -10,6 +10,7 @@ from .common import event_to_command, handle_command
 from .widget import WidgetMirror, WidgetSource
 
 
+# TODO 即使嵌入也能调整标题栏控件
 class WindowSource(WidgetSource):
     KIND = "window"
 

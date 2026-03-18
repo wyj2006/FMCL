@@ -1,7 +1,7 @@
 use super::service_template;
 use crate::common::WORK_DIR;
-use crate::error::Error;
 use crate::service::filesystem::{fcb_root, get_fcb};
+use anyhow::{Result, anyhow};
 use base64::prelude::*;
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
@@ -31,7 +31,7 @@ enum SubCommand {
     GetallRunning,
 }
 
-pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<u128, Error> {
+pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<u128> {
     let json_path = native_path.join("function.json");
     let command =
         match serde_json::from_str(&fs::read_to_string(native_path.join("function.json"))?) {
@@ -40,16 +40,19 @@ pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<
                     if let Some(Value::Object(t)) = t.get("command") {
                         t.clone()
                     } else {
-                        return Err(Error::InvalidKey(
-                            "command".to_string(),
-                            json_path.to_str().unwrap().to_string(),
+                        return Err(anyhow!(
+                            "invalid 'command' in '{}'",
+                            json_path.to_str().unwrap()
                         ));
                     }
                 } else {
-                    return Err(Error::InvalidFile(json_path.to_str().unwrap().to_string()));
+                    return Err(anyhow!(format!(
+                        "invalid '{}'",
+                        json_path.to_str().unwrap().to_string()
+                    )));
                 }
             }
-            Err(e) => return Err(Error::from(e)),
+            Err(e) => return Err(e.into()),
         };
 
     let mut program = match command.get("program") {
@@ -84,10 +87,7 @@ pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<
             }
             "function" => {
                 let Some(Value::String(function_path)) = command.get("program") else {
-                    return Err(Error::TemplateKeyMissing(
-                        "function".to_string(),
-                        "program".to_string(),
-                    ));
+                    return Err(anyhow!("missing 'function' for template 'program'"));
                 };
                 let args = if let Some(Value::Array(t)) = command.get("args") {
                     let mut args: Vec<String> = Vec::new();
@@ -98,7 +98,7 @@ pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<
                     }
                     args
                 } else {
-                    return Err(Error::InvalidArgs(format!("{:?}", command.get("args"))));
+                    return Err(anyhow!("invalid args: {:?}", command.get("args")));
                 };
                 return run_function(
                     match get_fcb(&mut fcb_root.lock().unwrap(), function_path) {
@@ -119,18 +119,14 @@ pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<
     let child = Command::new(match program {
         Some(program) => program,
         None => {
-            return Err(Error::ProgramNotFound);
+            return Err(anyhow!("program not found"));
         }
     })
     .current_dir(cwd.clone())
     .envs(envs)
     .args(args)
-    .spawn()
-    .unwrap();
-    let timestamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_millis();
+    .spawn()?;
+    let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis();
     running_functions
         .lock()
         .unwrap()
@@ -190,10 +186,10 @@ pub fn function_service() {
                                 }
                                 args
                             } else {
-                                return Err(Error::InvalidExtArgs(json_str.to_string()));
+                                return Err(anyhow!("invalid external args: {json_str}"));
                             }
                         }
-                        Err(e) => return Err(Error::from(e)),
+                        Err(e) => return Err(e.into()),
                     };
                     match run_function(PathBuf::from(&native_path), args.clone()) {
                         Ok(_) => {
