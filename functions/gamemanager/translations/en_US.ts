@@ -121,12 +121,12 @@
     <name>ModManager</name>
     <message>
         <location filename="..\modmanager\mod_manager.ui" line="0" />
-        <location filename="..\modmanager\mod_manager.py" line="170" />
+        <location filename="..\modmanager\mod_manager.py" line="172" />
         <source>删除</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="..\modmanager\mod_manager.py" line="170" />
+        <location filename="..\modmanager\mod_manager.py" line="172" />
         <source>确认删除?</source>
         <translation>Confirm deletion?</translation>
     </message>
@@ -163,12 +163,12 @@
 </context><context>
     <name>ModViewer</name>
     <message>
-        <location filename="..\modmanager\mod_manager.py" line="80" />
+        <location filename="..\modmanager\mod_manager.py" line="82" />
         <source>暂不支持该系统</source>
         <translation>The system is currently not supported</translation>
     </message>
     <message>
-        <location filename="..\modmanager\mod_manager.py" line="82" />
+        <location filename="..\modmanager\mod_manager.py" line="84" />
         <source>无法打开文件所在位置</source>
         <translation>Cannot open the file's location</translation>
     </message>

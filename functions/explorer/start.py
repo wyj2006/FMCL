@@ -1,14 +1,18 @@
 import logging
 import traceback
 
-from PyQt6.QtCore import pyqtSlot
+import qtawesome as qta
+from PyQt6.QtCore import QPoint, pyqtSlot
+from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import QListView, QListWidgetItem, QWidget
-from qfluentwidgets import FluentIcon, ListWidget, NavigationItemPosition
+from qfluentwidgets import FluentIcon, ListWidget, NavigationItemPosition, RoundMenu
+from result import is_err
 from ui_start import Ui_Start
 
 from fmcllib import show_qerrormessage
 from fmcllib.filesystem import fileinfo, listdir
 from fmcllib.function import Function
+from fmcllib.utils import quit, restart
 
 
 class FunctionList(ListWidget):
@@ -60,13 +64,14 @@ class Start(QWidget, Ui_Start):
             tooltip=self.tr("功能列表"),
         )
 
-        self.navigation_interface.addItem(
+        self.power_button = self.navigation_interface.addItem(
             "power",
             FluentIcon.POWER_BUTTON,
             self.tr("电源"),
             selectable=False,
             position=NavigationItemPosition.BOTTOM,
             tooltip=self.tr("电源"),
+            onClick=self.showPowerMenu,
         )
 
         self.stackWidget.addWidget(self.function_list)
@@ -74,3 +79,25 @@ class Start(QWidget, Ui_Start):
 
     def collapsePanel(self):
         self.navigation_interface.panel.collapse()
+
+    def showPowerMenu(self):
+        menu = RoundMenu()
+
+        quit_action = QAction(self.tr("退出"), self)
+        quit_action.triggered.connect(lambda: quit())
+        quit_action.setIcon(qta.icon("mdi.power"))
+
+        restart_action = QAction(self.tr("重启"), self)
+        restart_action.triggered.connect(
+            lambda: (
+                show_qerrormessage(self.tr("无法重启"), result.err_value, self)
+                if is_err(result := restart())
+                else None
+            )
+        )
+        restart_action.setIcon(qta.icon("msc.debug-restart"))
+
+        menu.addAction(quit_action)
+        menu.addAction(restart_action)
+
+        menu.exec(self.power_button.mapToGlobal(QPoint(0, -menu.view.height())))

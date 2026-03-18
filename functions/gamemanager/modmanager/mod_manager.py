@@ -74,7 +74,9 @@ class ModViewer(SettingCard):
     def open_folder(self):
         try:
             if sys.platform.startswith("win"):
-                subprocess.run(["explorer", f"/select,{self.mod.path}"])
+                subprocess.run(
+                    ["start", "explorer", f"/select,{self.mod.path}"], shell=True
+                )
             else:
                 # TODO 跨平台
                 raise Exception(self.tr("暂不支持该系统"))

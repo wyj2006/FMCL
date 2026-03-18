@@ -16,7 +16,10 @@ with ZipFile(os.path.join("src", "package.zip"), mode="w") as zip_file:
         glob(".minecraft/**", recursive=True)
         + list(
             set(glob("scripts/**", recursive=True))
-            - {os.path.join("scripts", "apply_update.py")}
+            - {
+                os.path.join("scripts", "apply_update.py"),
+                os.path.join("scripts", "restart.py"),
+            }
         )
         + [os.path.join("resources", "build.py")]
         + glob("target/**", recursive=True)

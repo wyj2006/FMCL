@@ -40,4 +40,19 @@ def apply_update(new_version_path: str) -> Result[None, str]:
 
     if "error_msg" in result:
         return Err(result["error_msg"])
-    return Ok(result)
+    return Ok(None)
+
+
+@safe_function(lock)
+def quit():
+    client.sendall(b"quit\0")
+
+
+@safe_function(lock)
+def restart() -> Result[None, str]:
+    client.sendall(b"restart\0")
+    result = json.loads(client.recv(1024 * 1024))
+
+    if "error_msg" in result:
+        return Err(result["error_msg"])
+    return Ok(None)

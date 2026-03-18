@@ -11,7 +11,7 @@ use serde_json::{json, to_value};
 use std::{
     env::{self, consts::EXE_EXTENSION},
     net::{Ipv4Addr, SocketAddr, SocketAddrV4},
-    process::Command,
+    process::{Command, id},
 };
 use ureq::{Agent, tls::TlsConfig};
 
@@ -39,6 +39,8 @@ struct ServiceCommand {
 enum SubCommand {
     CheckUpdate,
     ApplyUpdate { new_version_path: String },
+    Quit,
+    Restart,
 }
 
 pub fn utils_service() {
@@ -78,8 +80,29 @@ pub fn utils_service() {
                         Ok(t) => {
                             Command::new("python")
                                 .arg(t.native_paths.first().unwrap().to_str().unwrap())
+                                .arg(id().to_string())
                                 .arg(env::current_exe()?.to_str().unwrap())
                                 .arg(new_version_path)
+                                .spawn()
+                                .unwrap();
+                            *force_quit.write().unwrap() = true;
+                            Ok(Some(json!({})))
+                        }
+                        Err(e) => Err(e.into()),
+                    }
+                }
+                SubCommand::Quit => {
+                    *force_quit.write().unwrap() = true;
+                    Ok(None)
+                }
+                SubCommand::Restart => {
+                    *force_quit.write().unwrap() = true;
+                    match get_fcb(&mut fcb_root.lock().unwrap(), "/scripts/restart.py") {
+                        Ok(t) => {
+                            Command::new("python")
+                                .arg(t.native_paths.first().unwrap().to_str().unwrap())
+                                .arg(id().to_string())
+                                .arg(env::current_exe()?.to_str().unwrap())
                                 .spawn()
                                 .unwrap();
                             *force_quit.write().unwrap() = true;
