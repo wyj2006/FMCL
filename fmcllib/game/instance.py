@@ -20,6 +20,11 @@ class GameVersion(TypedDict):
     forge: str
 
 
+class TimeRecord(TypedDict):
+    start: float
+    end: float
+
+
 class Instance:
     def __init__(self, path: str):
         self.path = path
@@ -55,6 +60,36 @@ class Instance:
     @property
     def icon(self):
         return QIcon(self.icon_path)
+
+    @property
+    def game_directory(self):
+        return (
+            self.path
+            if self.is_isolate
+            else os.path.abspath(os.path.join(self.path, "..", ".."))
+        )
+
+    @property
+    def support_mod(self) -> bool:
+        for k, v in self.version.items():
+            if k != "original" and v:
+                return True
+        return False
+
+    @property
+    def mods_path(self) -> str:
+        return os.path.join(self.game_directory, "mods")
+
+    @property
+    def time_record_path(self) -> str:
+        return os.path.join(self.path, "FMCL", "time_record.json")
+
+    @property
+    def time_records(self) -> list[TimeRecord]:
+        try:
+            return json.load(open(self.time_record_path, encoding="utf-8"))
+        except:
+            return []
 
     @property
     def version_json(self):
@@ -188,25 +223,6 @@ class Instance:
         new_instance = Instance(os.path.normpath(os.path.join(self.path, "..", name)))
         Path(self.path).replace(new_instance.path)
         return new_instance
-
-    @property
-    def game_directory(self):
-        return (
-            self.path
-            if self.is_isolate
-            else os.path.abspath(os.path.join(self.path, "..", ".."))
-        )
-
-    @property
-    def support_mod(self) -> bool:
-        for k, v in self.version.items():
-            if k != "original" and v:
-                return True
-        return False
-
-    @property
-    def mods_path(self) -> str:
-        return os.path.join(self.game_directory, "mods")
 
 
 def merge(a: dict, b: dict):

@@ -10,22 +10,22 @@
         <translation>Game Monitor</translation>
     </message>
     <message>
-        <location filename="..\game_monitor.py" line="71" />
+        <location filename="..\game_monitor.py" line="75" />
         <source>没有合适的Java</source>
         <translation>No suitable Java found</translation>
     </message>
     <message>
-        <location filename="..\game_monitor.py" line="109" />
+        <location filename="..\game_monitor.py" line="113" />
         <source>CPU使用率</source>
         <translation>CPU Usage</translation>
     </message>
     <message>
-        <location filename="..\game_monitor.py" line="110" />
+        <location filename="..\game_monitor.py" line="114" />
         <source>内存使用率</source>
         <translation>Memory Usage</translation>
     </message>
     <message>
-        <location filename="..\game_monitor.py" line="115" />
+        <location filename="..\game_monitor.py" line="119" />
         <source>游戏已结束</source>
         <translation>Game Stopped</translation>
     </message>

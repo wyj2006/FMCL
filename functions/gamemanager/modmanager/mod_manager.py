@@ -78,7 +78,7 @@ class ModViewer(SettingCard):
                     ["start", "explorer", f"/select,{self.mod.path}"], shell=True
                 )
             else:
-                # TODO 跨平台
+                # TODO 跨平台(以及其它地方)
                 raise Exception(self.tr("暂不支持该系统"))
         except:
             show_qerrormessage(self.tr("无法打开文件所在位置"), traceback.format_exc())
