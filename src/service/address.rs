@@ -1,5 +1,5 @@
 use super::{check_conntection, service_template};
-use anyhow::anyhow;
+use anyhow::{Result, anyhow};
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::info;
@@ -10,7 +10,8 @@ use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
 use std::sync::Mutex;
 
 lazy_static! {
-    static ref registered_address: Mutex<HashMap<String, SocketAddr>> = Mutex::new(HashMap::new());
+    pub static ref registered_address: Mutex<HashMap<String, SocketAddr>> =
+        Mutex::new(HashMap::new());
 }
 
 #[derive(Parser)]
@@ -53,6 +54,15 @@ pub fn remove_address_disconnected() {
     }
 }
 
+pub fn get_address(name: &String) -> Result<(String, SocketAddr)> {
+    let registered = registered_address.lock().unwrap();
+    if registered.contains_key(name) {
+        Ok((name.clone(), registered[name]))
+    } else {
+        Err(anyhow!("address '{name}' does not exist"))
+    }
+}
+
 pub fn address_service() {
     service_template(
         "address".to_string(),
@@ -85,15 +95,11 @@ pub fn address_service() {
                     Ok(Some(json!({})))
                 }
                 SubCommand::Get { name } => {
-                    let registered = registered_address.lock().unwrap();
-                    if registered.contains_key(&name) {
-                        Ok(Some(json!({
-                            "name":name,
-                            "address":registered[&name],
-                        })))
-                    } else {
-                        Err(anyhow!("address '{name}' does not exist"))
-                    }
+                    let (name, address) = get_address(&name)?;
+                    Ok(Some(json!({
+                        "name":name,
+                        "address":address,
+                    })))
                 }
                 SubCommand::Getall => {
                     let registered = registered_address.lock().unwrap();

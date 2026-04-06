@@ -1,29 +1,23 @@
 use anyhow::{Result, anyhow};
 use serde_json::{Map, Value};
 
-#[derive(Debug)]
+use crate::{
+    message::{SettingMessage, SettingMsgKind},
+    service::notify::broadcast,
+};
+
+#[derive(Debug, Default)]
 pub struct SettingItem {
     pub name: String,
     pub value: Value,
+    pub key: String,
     pub children: Vec<SettingItem>,
     pub default_value: Value,
     pub attribute: Map<String, Value>,
 }
 
-impl Default for SettingItem {
-    fn default() -> Self {
-        SettingItem {
-            name: String::new(),
-            value: Value::Null,
-            children: Vec::new(),
-            default_value: Value::Null,
-            attribute: Map::new(),
-        }
-    }
-}
-
 impl SettingItem {
-    pub fn key_join(args: &Vec<&String>) -> String {
+    pub fn key_join(args: &[&str]) -> String {
         return args
             .iter()
             .map(|x| {
@@ -48,6 +42,10 @@ impl SettingItem {
         if let Some(_) = self.find(&settingitem.name) {
             Err(anyhow!("'{}' already exists", settingitem.name))
         } else {
+            broadcast(&SettingMessage {
+                key: settingitem.key.clone(),
+                kind: SettingMsgKind::Created,
+            });
             self.children.push(settingitem);
             Ok(())
         }

@@ -1,4 +1,6 @@
 use super::service_template;
+use crate::message::{SettingMessage, SettingMsgKind};
+use crate::service::notify::broadcast;
 use crate::setting_item::SettingItem;
 use anyhow::{Result, anyhow};
 use base64::prelude::*;
@@ -81,6 +83,7 @@ pub fn get_or_create_settingitem<'a, 'b>(
         if let None = cur.find(name) {
             cur.create(SettingItem {
                 name: name.to_string(),
+                key: SettingItem::key_join(&[&cur.key, name]),
                 ..Default::default()
             })?;
         }
@@ -105,19 +108,38 @@ pub fn add_or_update_default_setting(
     value: &Value,
 ) -> Result<()> {
     let t = get_or_create_settingitem(parent, key)?;
+    if t.default_value == *value {
+        return Ok(());
+    }
     if t.value == t.default_value {
         //此时的值和默认值相同, 认为该设置项并没有更改
         //所以同步这两个值
         t.value = value.clone();
         t.default_value = value.clone();
+
+        broadcast(&SettingMessage {
+            key: t.key.clone(),
+            kind: SettingMsgKind::ValueChanged,
+        });
     } else {
         t.default_value = value.clone();
     }
+    broadcast(&SettingMessage {
+        key: t.key.clone(),
+        kind: SettingMsgKind::DefaultValueChanged,
+    });
     Ok(())
 }
 
 pub fn add_or_update_setting(parent: &mut SettingItem, key: &String, value: &Value) -> Result<()> {
-    get_or_create_settingitem(parent, key)?.value = value.clone();
+    let t = get_or_create_settingitem(parent, key)?;
+    if t.value != *value {
+        t.value = value.clone();
+        broadcast(&SettingMessage {
+            key: t.key.clone(),
+            kind: SettingMsgKind::ValueChanged,
+        });
+    }
     Ok(())
 }
 
@@ -128,8 +150,11 @@ pub fn add_or_update_attr(
     attr: &Value,
 ) -> Result<()> {
     let t = get_or_create_settingitem(parent, key)?;
-    let v = t.attribute.get_mut(key);
+    let v = t.attribute.get_mut(attr_name);
     match (v, attr) {
+        (Some(a), b) if *a == *b => {
+            return Ok(());
+        }
         //对于字典和数组进行合并, 其它的进行覆盖
         (Some(Value::Object(x)), Value::Object(y)) => {
             x.extend(y.clone().into_iter());
@@ -141,6 +166,10 @@ pub fn add_or_update_attr(
             t.attribute.insert(attr_name.clone(), attr.clone());
         }
     }
+    broadcast(&SettingMessage {
+        key: t.key.clone(),
+        kind: SettingMsgKind::AttrChanged,
+    });
     Ok(())
 }
 
@@ -155,7 +184,7 @@ pub fn generate_setting_json(parent: &mut SettingItem, key: &String) -> Result<V
     }
 
     while let Some(key) = queue.pop_front() {
-        let to_parent_key = SettingItem::key_join(&vec![&key_prefix, &key]); //相对于parent的路径
+        let to_parent_key = SettingItem::key_join(&[&key_prefix, &key]); //相对于parent的路径
         let setting_item = get_settingitem(parent, &to_parent_key)?;
 
         if setting_item.default_value != setting_item.value && setting_item.value != Value::Null {
@@ -163,7 +192,7 @@ pub fn generate_setting_json(parent: &mut SettingItem, key: &String) -> Result<V
         }
 
         for name in list_children(parent, &to_parent_key)? {
-            queue.push_back(SettingItem::key_join(&vec![&key, &name]));
+            queue.push_back(SettingItem::key_join(&[&key, &name]));
         }
     }
 

@@ -21,9 +21,11 @@ class SettingJsonHandler(FileSystemEventHandler):
             update_game()
 
     def on_modified(self, event):
-        if event.src_path == SETTING_DEFAULT_PATH:
-            update_minecraft_mount()
-            update_game()
+        if event.src_path != SETTING_DEFAULT_PATH:
+            return
+        Setting().load()
+        update_minecraft_mount()
+        update_game()
 
     def on_deleted(self, event):
         if event.src_path == SETTING_DEFAULT_PATH:
@@ -110,10 +112,10 @@ update_minecraft_mount()
 update_game()
 
 observer = Observer()
-path = SETTING_DEFAULT_PATH
+path = os.path.dirname(SETTING_DEFAULT_PATH)
 while not os.path.exists(path):
     path = os.path.dirname(path)
-observer.schedule(SettingJsonHandler(), path)
+observer.schedule(SettingJsonHandler(), path, recursive=True)
 observer.start()
 
 while True:

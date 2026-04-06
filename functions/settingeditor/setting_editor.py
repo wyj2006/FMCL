@@ -156,7 +156,13 @@ class KeyWidget(QWidget):
             attr_setter = lambda attr_name, value: self.setting.set_attr(
                 key, attr_name, value
             )
-            self.card = dispatch_card(getter, attr_getter, setter, attr_setter)
+            self.card = dispatch_card(
+                getter,
+                attr_getter,
+                setter,
+                attr_setter,
+                key=Setting.key_join(setting.root_key, key),
+            )
             self.layout().addWidget(self.card)
 
     def event(self, a0):
@@ -174,7 +180,7 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         super().__init__()
         self.setupUi(self)
         self.setWindowIcon(FluentIcon.SETTING.icon())
-        self.setWindowTitle(self.tr(f"设置: {path}"))
+        self.setWindowTitle(self.tr("设置: {path}").format(path=path))
         self.splitter.setSizes([100, 300])
         # 因为可能存在MirrorCard, 为了减少麻烦, 关闭后就删除
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
@@ -352,4 +358,5 @@ class SettingEditor(QWidget, Ui_SettingEditor):
         QApplication.processEvents()
 
         for name in self.setting.children(key).unwrap():
+            self.genCards(Setting.key_join(key, name))
             self.genCards(Setting.key_join(key, name))

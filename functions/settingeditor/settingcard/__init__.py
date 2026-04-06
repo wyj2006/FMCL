@@ -10,6 +10,8 @@ def dispatch_card(
     attr_getter: Callable[[str, Optional[Any]], Any],
     setter: Callable[[Any], None] = lambda *_: None,
     attr_setter: Callable[[str, Any], None] = lambda *_: None,
+    *args,
+    **kwargs,
 ):
     from .bool_card import BoolCard
     from .default_card import DefaultCard
@@ -46,4 +48,4 @@ def dispatch_card(
             card_cls = ListCard
         case dict():
             card_cls = DictCard
-    return card_cls(getter, attr_getter, setter, attr_setter)
+    return card_cls(getter, attr_getter, setter, attr_setter, *args, **kwargs)

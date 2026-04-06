@@ -3,6 +3,24 @@ from typing import Any, Callable, Optional
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
+from fmcllib.notify import Subscriber
+
+
+class CardSubscriber(Subscriber):
+    def __init__(self, card: SettingCard):
+        super().__init__()
+        self.card = card
+
+    def on_setting_valuechanged(self, key):
+        if self.card.key != key:
+            return
+        self.card.valueChanged.emit(self.card.getter())
+
+    def on_setting_attrchanged(self, key):
+        if self.card.key != key:
+            return
+        self.card.attrChanged.emit(self.card.attr_getter())
+
 
 class SettingCard(QWidget):
     valueChanged = pyqtSignal(object)
@@ -14,6 +32,7 @@ class SettingCard(QWidget):
         attr_getter: Callable[[str, Optional[Any]], Any],
         setter: Callable[[Any], None] = lambda *_: None,
         attr_setter: Callable[[str, Any], None] = lambda *_: None,
+        key=None,  # 只用于过滤通知
         parent=None,
     ):
         super().__init__(parent)
@@ -24,6 +43,9 @@ class SettingCard(QWidget):
 
         self.valueChanged.connect(self.setter)
         self.attrChanged.connect(self.attr_setter)
+
+        self.key = key
+        self.subscriber = CardSubscriber(self)
 
         self.postInit()
 

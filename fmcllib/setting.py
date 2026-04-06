@@ -1,7 +1,8 @@
 import base64
 import json
-import os
+import logging
 import threading
+import traceback
 from typing import Any, Literal, TypedDict, Union
 
 from result import Err, Ok, Result
@@ -56,10 +57,15 @@ class Setting:
         # 所有的设置都有一个共同的根, root_key就是这个设置相对于根的路径
         self.root_key = native_path.replace(".", "").replace("\\", "/")
 
-        if os.path.exists(native_path):
-            for key, val in json.load(open(native_path, encoding="utf-8")).items():
-                self.add_or_update(key, val)
+        self.load()
         self.add_or_update("", native_path, True)  # 更改root的值
+
+    def load(self):
+        try:
+            for key, val in json.load(open(self.native_path, encoding="utf-8")).items():
+                self.add_or_update(key, val)
+        except:
+            logging.error(f"无法从文件更新设置: {traceback.format_exc()}")
 
     @safe_function(lock)
     def add_or_update(self, key: str, value, is_default=False) -> Result[None, str]:

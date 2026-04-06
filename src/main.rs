@@ -1,11 +1,13 @@
 mod common;
 mod fcb;
+mod message;
 mod service;
 mod setting_item;
 mod tcb;
 
 use crate::common::WORK_DIR;
 use crate::service::function::kill_all_functions;
+use crate::service::notify_service;
 use crate::service::utils::utils_service;
 use anstyle::{AnsiColor, Color, Effects, RgbColor, Style};
 use chrono::Local;
@@ -101,7 +103,7 @@ fn main() {
         )
         .chain(
             fern::Dispatch::new()
-                .level(log::LevelFilter::Info)
+                .level(if cfg!(debug_assertions){log::LevelFilter::Debug}else{log::LevelFilter::Info})
                 .chain(
                     OpenOptions::new()
                         .write(true)
@@ -181,6 +183,11 @@ fn main() {
     thread::Builder::new()
         .name("utils".to_string())
         .spawn(utils_service)
+        .unwrap();
+
+    thread::Builder::new()
+        .name("notify".to_string())
+        .spawn(notify_service)
         .unwrap();
 
     match get_fcb(
