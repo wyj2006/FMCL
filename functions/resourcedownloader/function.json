@@ -1,0 +1,12 @@
+{
+    "type": "executable",
+    "display_name": "资源下载器",
+    "translation_context": "ResourceDownloader",
+    "icon": {
+        "type": "QtAwesome",
+        "value": "mdi.earth"
+    },
+    "command": {
+        "template": "python"
+    }
+}

@@ -143,7 +143,7 @@
     <message>
         <location filename="../setting_editor.py" line="183"/>
         <source>设置: {path}</source>
-        <translation type="unfinished">Settings: {path}</translation>
+        <translation>Settings: {path}</translation>
     </message>
     <message>
         <location filename="../setting_editor.py" line="209"/>

@@ -4,7 +4,7 @@ from typing import Callable
 from PyQt6.QtCore import QEvent, QObject, Qt, QTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtNetwork import QAbstractSocket
-from PyQt6.QtWidgets import QSizePolicy, QVBoxLayout, QWidget, QApplication
+from PyQt6.QtWidgets import QApplication, QSizePolicy, QVBoxLayout, QWidget
 
 from .base import Mirror, Source
 from .common import event_to_command
