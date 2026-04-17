@@ -9,3 +9,6 @@ fault_dump.txt
 Cargo.lock
 resources/resources.qrc
 src/package.zip
+ui_*.py
+resources/__init__.py
+*.qm
