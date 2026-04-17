@@ -27,7 +27,7 @@ class HelpItem:
         self.path = path
         self.name = os.path.basename(path)
         self.parent: HelpItem = parent
-        self.page: str = None
+        self.page: str = None  # page.qml的路径
         self.children: list[HelpItem] = []
 
         for name in listdir(self.path).unwrap_or([]):
@@ -135,14 +135,7 @@ class HelpViewer(QWidget, Ui_HelpViewer):
         item: HelpItem = index.internalPointer()
         if item.page == None:
             return
-        url = QUrl.fromLocalFile(item.page)
-        if url not in self.pages:
-            self.pages[url] = QQuickWidget(url)
-            self.pages[url].setWindowTitle(f"{item.name}({item.page})")
-            self.pages[url].setWindowIcon(self.windowIcon())
-            self.pages[url].installEventFilter(self)
-        self.page_stack.addWidget(self.pages[url])
-        self.page_stack.setCurrentWidget(self.pages[url])
+        self.addPage(item)
 
     def eventFilter(self, a0: QObject, a1: QEvent):
         if isinstance(a0, QQuickWidget):
@@ -186,6 +179,16 @@ class HelpViewer(QWidget, Ui_HelpViewer):
         widget.setParent(None)
         widget.resize(self.size())
         widget.show()
+
+    def addPage(self, item: HelpItem):
+        url = QUrl.fromLocalFile(item.page)
+        if url not in self.pages:
+            self.pages[url] = QQuickWidget(url)
+            self.pages[url].setWindowTitle(f"{item.name}({item.page})")
+            self.pages[url].setWindowIcon(self.windowIcon())
+            self.pages[url].installEventFilter(self)
+        self.page_stack.addWidget(self.pages[url])
+        self.page_stack.setCurrentWidget(self.pages[url])
 
     def removePage(self, widget: QQuickWidget):
         key = widget.source().toString()
