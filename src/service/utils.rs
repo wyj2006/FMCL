@@ -65,7 +65,7 @@ pub fn utils_service() {
 
                     let mut info: LatestInfo = response.body_mut().read_json::<LatestInfo>()?;
 
-                    if VersionReq::parse(&format!("{}", info.tag_name))?
+                    if VersionReq::parse(&format!(">{}", info.tag_name))?
                         .matches(&Version::parse(env!("CARGO_PKG_VERSION"))?)
                     {
                         info.assets.retain(|x| x.name.ends_with(EXE_EXTENSION));
