@@ -4,25 +4,21 @@
 <context>
     <name>CardHeader</name>
     <message>
-        <location filename="..\settingcard\ui_card_header.py" line="83" />
         <location filename="..\settingcard\card_header.ui" line="0" />
         <source>CardHeader</source>
         <translation>CardHeader</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_card_header.py" line="87" />
         <location filename="..\settingcard\card_header.ui" line="0" />
         <source>上移</source>
         <translation>Move Up</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_card_header.py" line="94" />
         <location filename="..\settingcard\card_header.ui" line="0" />
         <source>下移</source>
         <translation>Move Down</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_card_header.py" line="100" />
         <location filename="..\settingcard\card_header.ui" line="0" />
         <source>删除</source>
         <translation>Delete</translation>
@@ -47,13 +43,11 @@
         <translation>Confirm deletion?</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_dict_card.py" line="85" />
         <location filename="..\settingcard\dict_card.ui" line="0" />
         <source>DictCard</source>
         <translation>DictCard</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_dict_card.py" line="89" />
         <location filename="..\settingcard\dict_card.ui" line="0" />
         <source>添加</source>
         <translation>Add</translation>
@@ -88,13 +82,11 @@
         <translation>Confirm deletion?</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_list_card.py" line="85" />
         <location filename="..\settingcard\list_card.ui" line="0" />
         <source>ListCard</source>
         <translation>ListCard</translation>
     </message>
     <message>
-        <location filename="..\settingcard\ui_list_card.py" line="89" />
         <location filename="..\settingcard\list_card.ui" line="0" />
         <source>添加</source>
         <translation>Add</translation>

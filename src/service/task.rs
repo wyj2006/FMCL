@@ -1,4 +1,6 @@
 use super::service_template;
+use crate::message::{TaskMessage, TaskMsgKind};
+use crate::service::notify::broadcast;
 use crate::tcb::{TCB, TaskId};
 use anyhow::anyhow;
 use clap::{Parser, Subcommand};
@@ -75,6 +77,12 @@ pub fn task_service() {
                             t.children.push(*task_id);
                         }
                         info!("Create task {task_id}");
+
+                        broadcast(&TaskMessage {
+                            id: *task_id,
+                            kind: TaskMsgKind::Created,
+                        });
+
                         *task_id += 1;
                         Ok(Some(json! ({
                             "id":*task_id-1
@@ -97,6 +105,12 @@ pub fn task_service() {
                     SubCommand::Remove { id } => {
                         if let Some(tcb) = tasks.remove(&id) {
                             info!("Remove task {id}");
+
+                            broadcast(&TaskMessage {
+                                id,
+                                kind: TaskMsgKind::Removed,
+                            });
+
                             if let Some(parent) = tasks.get_mut(&tcb.parent) {
                                 if let Some(index) =
                                     parent.children.iter().position(|x| *x == tcb.id)

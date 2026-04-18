@@ -1,6 +1,8 @@
 use super::service_template;
 use crate::common::WORK_DIR;
+use crate::message::{FunctionMessage, FunctionMsgKind};
 use crate::service::filesystem::{fcb_root, get_fcb};
+use crate::service::notify::broadcast;
 use anyhow::{Result, anyhow};
 use base64::prelude::*;
 use clap::{Parser, Subcommand};
@@ -16,7 +18,8 @@ use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 lazy_static! {
-    pub static ref running_functions: Mutex<HashMap<String, Child>> = Mutex::new(HashMap::new());
+    pub static ref running_functions: Mutex<HashMap<(String, PathBuf), Child>> =
+        Mutex::new(HashMap::new());
 }
 
 #[derive(Parser)]
@@ -61,7 +64,7 @@ pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<
     };
     let cwd = match command.get("cwd") {
         Some(Value::String(cwd)) => PathBuf::from(cwd),
-        _ => native_path,
+        _ => native_path.clone(),
     };
     let mut envs = HashMap::new();
     let mut args = match command.get("args") {
@@ -130,7 +133,13 @@ pub fn run_function(native_path: PathBuf, external_args: Vec<String>) -> Result<
     running_functions
         .lock()
         .unwrap()
-        .insert(timestamp.to_string(), child);
+        .insert((timestamp.to_string(), native_path.clone()), child);
+
+    broadcast(&FunctionMessage {
+        path: native_path.to_str().unwrap().to_string(),
+        kind: FunctionMsgKind::Started,
+    });
+
     Ok(timestamp)
 }
 
@@ -140,17 +149,22 @@ pub fn remove_stopped_functions() {
     if let Ok(mut t) = running_functions.try_lock() {
         let mut stopped_functions = Vec::new();
 
-        for (timestamp, child) in t.iter_mut() {
+        for (key, child) in t.iter_mut() {
             match child.try_wait() {
                 Ok(Some(_)) | Err(_) => {
-                    stopped_functions.push(timestamp.clone());
+                    stopped_functions.push(key.clone());
                 }
                 _ => {}
             }
         }
 
-        for timestamp in &stopped_functions {
-            t.remove(timestamp);
+        for key in &stopped_functions {
+            t.remove(key);
+
+            broadcast(&FunctionMessage {
+                path: key.1.to_str().unwrap().to_string(),
+                kind: FunctionMsgKind::Stopped,
+            });
         }
     }
 }
@@ -201,8 +215,8 @@ pub fn function_service() {
                 }
                 SubCommand::GetallRunning => {
                     let mut data = json!({});
-                    for (timestamp, child) in running_functions.lock().unwrap().iter() {
-                        data[timestamp] = json!(child.id());
+                    for ((timestamp, path), child) in running_functions.lock().unwrap().iter() {
+                        data[format!("{timestamp}@{}", path.to_str().unwrap())] = json!(child.id());
                     }
                     Ok(Some(data))
                 }

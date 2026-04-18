@@ -1,3 +1,4 @@
+use crate::tcb::TaskId;
 use anyhow::Result;
 use serde::Serialize;
 use serde_json::to_string;
@@ -27,4 +28,40 @@ pub enum SettingMsgKind {
     AttrChanged,
     DefaultValueChanged,
     Created,
+}
+
+#[derive(Serialize)]
+pub struct TaskMessage {
+    pub id: TaskId,
+    pub kind: TaskMsgKind,
+}
+
+#[derive(Serialize)]
+pub enum TaskMsgKind {
+    Created,
+    Removed,
+}
+
+#[derive(Serialize)]
+pub struct FunctionMessage {
+    pub path: String,
+    pub kind: FunctionMsgKind,
+}
+
+#[derive(Serialize)]
+pub enum FunctionMsgKind {
+    Started,
+    Stopped,
+}
+
+#[derive(Serialize)]
+pub struct AddressMessage {
+    pub name: String,
+    pub kind: AddressMsgKind,
+}
+
+#[derive(Serialize)]
+pub enum AddressMsgKind {
+    Registered,
+    Unregistered,
 }

@@ -4,7 +4,6 @@
 <context>
     <name>FileManager</name>
     <message>
-        <location filename="..\ui_file_manager.py" line="77" />
         <location filename="..\..\..\temp\functions.filemanager.function.json.py" line="2" />
         <location filename="..\file_manager.ui" line="0" />
         <source>文件管理器</source>

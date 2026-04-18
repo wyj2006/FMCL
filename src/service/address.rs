@@ -1,3 +1,6 @@
+use crate::message::{AddressMessage, AddressMsgKind};
+use crate::service::notify::broadcast;
+
 use super::{check_conntection, service_template};
 use anyhow::{Result, anyhow};
 use clap::{Parser, Subcommand};
@@ -33,24 +36,34 @@ pub fn register_address(name: &String, address: SocketAddr) {
         .lock()
         .unwrap()
         .insert(name.clone(), address);
+    broadcast(&AddressMessage {
+        name: name.to_string(),
+        kind: AddressMsgKind::Registered,
+    });
 }
 
 pub fn unregister_address(name: &String) {
     registered_address.lock().unwrap().remove(name);
+    broadcast(&AddressMessage {
+        name: name.to_string(),
+        kind: AddressMsgKind::Unregistered,
+    });
 }
 
 ///移除已经失去连接的address
 pub fn remove_address_disconnected() {
     //用try_lock减少对正常服务的影响
-    if let Ok(mut t) = registered_address.try_lock() {
-        t.retain(|name, address| {
-            //自己肯定没有失去连接
-            if name == "address" {
-                true
-            } else {
-                check_conntection(address)
+    let mut disconnected = vec![];
+    if let Ok(t) = registered_address.try_lock() {
+        for (name, address) in t.iter() {
+            if name != "address" && !check_conntection(address) {
+                disconnected.push(name.clone());
             }
-        });
+        }
+    }
+
+    for name in disconnected {
+        unregister_address(&name);
     }
 }
 

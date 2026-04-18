@@ -4,114 +4,123 @@
 <context>
     <name>Desktop</name>
     <message>
-        <location filename="..\desktop.py" line="78" />
+        <location filename="../desktop.py" line="78"/>
         <source>刷新</source>
         <translation>Refresh</translation>
     </message>
     <message>
-        <location filename="..\desktop.py" line="84" />
+        <location filename="../desktop.py" line="84"/>
         <source>运行</source>
         <translation>Run</translation>
     </message>
     <message>
-        <location filename="..\desktop.py" line="119" />
+        <location filename="../desktop.py" line="119"/>
         <source>运行{path}时出错</source>
         <translation>Error running {path}</translation>
     </message>
-</context><context>
+</context>
+<context>
     <name>Exploer</name>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.function.json.py" line="2" />
+        <location filename="../../../temp/functions.explorer.function.json.py" line="2"/>
         <source>Exploer</source>
         <translation>Explorer</translation>
     </message>
-</context><context>
+</context>
+<context>
     <name>Explorer</name>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.defaultsettings.json.py" line="2" />
+        <location filename="../../../temp/functions.explorer.defaultsettings.json.py" line="2"/>
         <source>Explorer</source>
         <translation>Explorer</translation>
     </message>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.defaultsettings.json.py" line="3" />
+        <location filename="../../../temp/functions.explorer.defaultsettings.json.py" line="3"/>
         <source>在退出时分离</source>
         <translation>Detach on Close</translation>
     </message>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.defaultsettings.json.py" line="4" />
+        <location filename="../../../temp/functions.explorer.defaultsettings.json.py" line="4"/>
         <source>如果为True, 在Exploer退出时会分离那些未分离的窗口, 为False会直接删除这些窗口</source>
         <translation>If True, un-detached windows will be detached when Explorer exits. If False, these windows will be deleted directly</translation>
     </message>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.defaultsettings.json.py" line="5" />
+        <location filename="../../../temp/functions.explorer.defaultsettings.json.py" line="5"/>
         <source>嵌入窗口</source>
         <translation>Embed Window</translation>
     </message>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.defaultsettings.json.py" line="6" />
+        <location filename="../../../temp/functions.explorer.defaultsettings.json.py" line="6"/>
         <source>桌面</source>
         <translation>Desktop</translation>
     </message>
     <message>
-        <location filename="..\..\..\temp\functions.explorer.defaultsettings.json.py" line="7" />
+        <location filename="../../../temp/functions.explorer.defaultsettings.json.py" line="7"/>
         <source>功能的上下文菜单动作</source>
         <translation>Context Menu Actions of Function</translation>
     </message>
     <message>
-        <location filename="..\explorer.py" line="47" />
+        <location filename="../explorer.py" line="52"/>
         <source>显示桌面</source>
         <translation>Show Desktop</translation>
     </message>
     <message>
-        <location filename="..\explorer.py" line="239" />
+        <location filename="../explorer.py" line="56"/>
+        <source>跳转到任务管理器</source>
+        <translation>Open Task Manager</translation>
+    </message>
+    <message>
+        <location filename="../explorer.py" line="254"/>
         <source>分离</source>
         <translation>Detach</translation>
     </message>
     <message>
-        <location filename="..\explorer.py" line="248" />
+        <location filename="../explorer.py" line="263"/>
         <source>关闭</source>
         <translation>Close</translation>
     </message>
-</context><context>
+</context>
+<context>
     <name>FunctionList</name>
     <message>
-        <location filename="..\start.py" line="47" />
+        <location filename="../start.py" line="47"/>
         <source>运行{path}出错</source>
         <translation>Error running {path}</translation>
     </message>
-</context><context>
+</context>
+<context>
     <name>Start</name>
     <message>
-        <location filename="..\start.py" line="64" />
-        <location filename="..\start.py" line="62" />
+        <location filename="../start.py" line="64"/>
+        <location filename="../start.py" line="62"/>
         <source>功能列表</source>
         <translation>Function List</translation>
     </message>
     <message>
-        <location filename="..\start.py" line="73" />
-        <location filename="..\start.py" line="70" />
+        <location filename="../start.py" line="73"/>
+        <location filename="../start.py" line="70"/>
         <source>电源</source>
         <translation>Power</translation>
     </message>
     <message>
-        <location filename="..\start.py" line="86" />
+        <location filename="../start.py" line="86"/>
         <source>退出</source>
         <translation>Quit</translation>
     </message>
     <message>
-        <location filename="..\start.py" line="90" />
+        <location filename="../start.py" line="90"/>
         <source>重启</source>
         <translation>Restart</translation>
     </message>
     <message>
-        <location filename="..\start.py" line="93" />
+        <location filename="../start.py" line="93"/>
         <source>无法重启</source>
         <translation>Cannot restart</translation>
     </message>
     <message>
-        <location filename="..\ui_start.py" line="79" />
-        <location filename="..\start.ui" line="0" />
+        <location filename="../start.ui" line="0"/>
         <source>开始</source>
         <translation>Start</translation>
     </message>
-</context></TS>
+</context>
+</TS>

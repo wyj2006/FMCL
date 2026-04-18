@@ -11,12 +11,12 @@ class CardSubscriber(Subscriber):
         super().__init__()
         self.card = card
 
-    def on_setting_valuechanged(self, key):
+    def on_setting_value_changed(self, key):
         if self.card.key != key:
             return
         self.card.valueChanged.emit(self.card.getter())
 
-    def on_setting_attrchanged(self, key):
+    def on_setting_attr_changed(self, key):
         if self.card.key != key:
             return
         self.card.attrChanged.emit(self.card.attr_getter())

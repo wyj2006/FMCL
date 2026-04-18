@@ -2,7 +2,7 @@ from typing import Union
 
 import qtawesome as qta
 from desktop import Desktop
-from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, pyqtSlot
+from PyQt6.QtCore import QEvent, QObject, QPoint, Qt, QTimer, pyqtSignal, pyqtSlot
 from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import (
     QApplication,
@@ -15,12 +15,17 @@ from qfluentwidgets import FluentIcon, RoundMenu, TabItem, TransparentToolButton
 from start import Start
 from taskbar import TaskBar
 
+from fmcllib.function import Function
 from fmcllib.mirror import WindowMirror, getall_mirror
+from fmcllib.notify import Subscriber
 from fmcllib.setting import Setting
+from fmcllib.task import getall_task
 from fmcllib.window import Window
 
 
-class Explorer(QStackedWidget):
+class Explorer(QStackedWidget, Subscriber):
+    captureRequest = pyqtSignal()
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Functional Minecraft Launcher")
@@ -47,6 +52,13 @@ class Explorer(QStackedWidget):
         self.desktop_button.setToolTip(self.tr("显示桌面"))
         self.desktop_button.clicked.connect(self.showDesktop)
 
+        self.task_button = TransparentToolButton(qta.icon("ei.tasks"))
+        self.task_button.setToolTip(self.tr("跳转到任务管理器"))
+        self.task_button.clicked.connect(
+            lambda: Function.quick_run("/functions/taskmanager")
+        )
+        self.task_button.hide()
+
         self.task_bar = TaskBar()
         self.task_bar.tabCloseRequested.connect(
             lambda index: self.captured_windows[
@@ -66,9 +78,7 @@ class Explorer(QStackedWidget):
 
         self.captured_windows: dict[str, WindowMirror] = {}
 
-        self.capture_timer = QTimer(self)
-        self.capture_timer.timeout.connect(self.capture)
-        self.capture_timer.start(1000)
+        self.captureRequest.connect(self.capture)
 
         QApplication.instance().aboutToQuit.connect(self.on_aboutToQuit)
 
@@ -95,6 +105,11 @@ class Explorer(QStackedWidget):
                 self.desktop_button.setFixedSize(window.titleBar.closeBtn.size())
                 window.titleBar.hBoxLayout.insertWidget(
                     2, self.desktop_button, 0, Qt.AlignmentFlag.AlignRight
+                )
+
+                self.task_button.setFixedSize(window.titleBar.closeBtn.size())
+                window.titleBar.hBoxLayout.insertWidget(
+                    3, self.task_button, 0, Qt.AlignmentFlag.AlignRight
                 )
         return super().event(e)
 
@@ -262,3 +277,18 @@ class Explorer(QStackedWidget):
         else:
             for window_mirror in tuple(self.captured_windows.values()):
                 window_mirror.close()
+
+    def on_task_created(self, id):
+        self.task_button.show()
+
+    def on_task_removed(self, id):
+        if len(getall_task()) == 0:
+            self.task_button.hide()
+        else:
+            self.task_button.show()
+
+    def on_address_registered(self, name):
+        self.captureRequest.emit()
+
+    def on_address_unregistered(self, name):
+        self.captureRequest.emit()

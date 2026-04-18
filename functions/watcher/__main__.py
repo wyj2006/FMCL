@@ -11,6 +11,7 @@ from watchdog.observers import Observer
 from fmcllib.filesystem import fileinfo, mount_native, unmount_native
 from fmcllib.function import Function
 from fmcllib.game import Instance
+from fmcllib.notify import Subscriber, receive_thread
 from fmcllib.setting import SETTING_DEFAULT_PATH, Setting
 
 
@@ -118,8 +119,14 @@ while not os.path.exists(path):
 observer.schedule(SettingJsonHandler(), path, recursive=True)
 observer.start()
 
-while True:
-    time.sleep(1)
-    # 只有自己一个功能在运行
-    if len(Function.getall_running().unwrap_or([])) <= 1:
-        break
+
+class Watcher(Subscriber):
+    def on_function_stopped(self, path):
+        # 只有自己一个功能在运行
+        if len(Function.getall_running().unwrap_or([])) <= 1:
+            os._exit(0)
+
+
+watcher = Watcher()
+
+receive_thread.join()

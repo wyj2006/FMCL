@@ -23,16 +23,34 @@ class Subscriber:
     def __init__(self):
         subscribers.append(self)
 
-    def on_setting_valuechanged(self, key: str):
+    def on_setting_value_changed(self, key: str):
         pass
 
-    def on_setting_defaultvaluechanged(self, key: str):
+    def on_setting_default_value_changed(self, key: str):
         pass
 
-    def on_setting_attrchanged(self, key: str):
+    def on_setting_attr_changed(self, key: str):
         pass
 
     def on_setting_created(self, key: str):
+        pass
+
+    def on_task_created(self, id: int):
+        pass
+
+    def on_task_removed(self, id: int):
+        pass
+
+    def on_function_started(self, path: str):
+        pass
+
+    def on_function_stopped(self, path: str):
+        pass
+
+    def on_address_registered(self, name: str):
+        pass
+
+    def on_address_unregistered(self, name: str):
         pass
 
 
@@ -57,15 +75,34 @@ def receive():
                 if "key" in data and "kind" in data:
                     match data["kind"]:
                         case "ValueChanged":
-                            subscriber.on_setting_valuechanged(data["key"])
+                            subscriber.on_setting_value_changed(data["key"])
                         case "DefaultValueChanged":
-                            subscriber.on_setting_defaultvaluechanged(data["key"])
+                            subscriber.on_setting_default_value_changed(data["key"])
                         case "AttrChanged":
-                            subscriber.on_setting_attrchanged(data["key"])
+                            subscriber.on_setting_attr_changed(data["key"])
                         case "Created":
                             subscriber.on_setting_created(data["key"])
+                if "id" in data and "kind" in data:
+                    match data["kind"]:
+                        case "Created":
+                            subscriber.on_task_created(data["id"])
+                        case "Removed":
+                            subscriber.on_task_removed(data["id"])
+                if "path" in data and "kind" in data:
+                    match data["kind"]:
+                        case "Started":
+                            subscriber.on_function_started(data["path"])
+                        case "Stopped":
+                            subscriber.on_function_stopped(data["path"])
+                if "name" in data and "kind" in data:
+                    match data["kind"]:
+                        case "Registered":
+                            subscriber.on_address_registered(data["name"])
+                        case "Unregistered":
+                            subscriber.on_address_unregistered(data["name"])
         except:
             logging.error(traceback.format_exc())
 
 
-threading.Thread(target=receive, daemon=True).start()
+receive_thread = threading.Thread(target=receive, daemon=True)
+receive_thread.start()

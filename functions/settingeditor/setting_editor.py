@@ -359,4 +359,3 @@ class SettingEditor(QWidget, Ui_SettingEditor):
 
         for name in self.setting.children(key).unwrap():
             self.genCards(Setting.key_join(key, name))
-            self.genCards(Setting.key_join(key, name))
